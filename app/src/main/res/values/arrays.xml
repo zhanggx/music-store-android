@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="title_tabs">
+        <item>推荐</item>
+        <item>专辑</item>
+        <item>歌手</item>
+        <item>收藏</item>
+    </array>
+</resources>

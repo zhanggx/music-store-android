@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">我的音乐盒</string>
+    <string name="network_error_msg">网络错误，请重试...</string>
+    <string name="load_data_error_msg">加载数据错误，请重试...</string>
+
+
+    <string name="music_count_string">%1$d首歌曲</string>
+    <string name="album_count_string">%1$d张专辑</string>
+
 </resources>

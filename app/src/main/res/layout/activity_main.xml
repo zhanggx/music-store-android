@@ -31,7 +31,6 @@
             android:textAlignment="center"
             android:background="@color/colorPrimary"/>
 
-
     </com.google.android.material.appbar.AppBarLayout>
 
 
