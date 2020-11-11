@@ -5,21 +5,26 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
+import android.webkit.MimeTypeMap;
 
 import androidx.annotation.Nullable;
 
 import com.example.musicplayer.entity.Music;
 import com.example.musicplayer.util.Constants;
 
-import java.io.IOException;
+import java.lang.ref.WeakReference;
 
-public class PlayService extends Service implements MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener,PlayServiceBinder {
+public class PlayService extends Service implements MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener, PlayServiceBinder, MediaPlayer.OnPreparedListener {
     private Music music;
     private final MediaPlayer myMediaPlayer = new MediaPlayer();
+    private final IBinder mBinder = new LocalBinder();
+    private PlayServiceCallBack mPlayServiceCallBack;
 
     public static void startService(Context context,Music music){
         Intent intent=new Intent(context,PlayService.class);
@@ -37,13 +42,13 @@ public class PlayService extends Service implements MediaPlayer.OnCompletionList
     public static void unbindService(Activity activity, ServiceConnection serviceConnection){
         activity.unbindService(serviceConnection);
     }
-    private final IBinder mBinder = new LocalBinder();
-    private PlayServiceCallBack mPlayServiceCallBack;
+
     @Override
     public void onCreate() {
         super.onCreate();
         myMediaPlayer.setOnCompletionListener(this);
         myMediaPlayer.setOnErrorListener(this);
+        myMediaPlayer.setOnPreparedListener(this);
     }
 
     @Nullable
@@ -51,6 +56,12 @@ public class PlayService extends Service implements MediaPlayer.OnCompletionList
     public IBinder onBind(Intent intent) {
         return mBinder;
     }
+
+    @Override
+    public void onPrepared(MediaPlayer mp) {
+        mp.start();
+    }
+
     public class LocalBinder extends Binder {
         public PlayService getService() {
             // Return this instance of LocalService so clients can call public methods
@@ -72,15 +83,17 @@ public class PlayService extends Service implements MediaPlayer.OnCompletionList
         return Service.START_STICKY;
     }
     private void startPlay(){
-        Uri uri = Uri.parse(music.getFileUrl());
+        String url=music.getFileUrl();
         try {
             if (myMediaPlayer.isPlaying()){
                 myMediaPlayer.stop();
             }
-            myMediaPlayer.setDataSource(this, uri);
+            myMediaPlayer.setDataSource(url);
+            myMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            //myMediaPlayer.prepare();
+            //myMediaPlayer.start();
             myMediaPlayer.prepareAsync();
-            myMediaPlayer.start();
-        } catch (IOException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     }
@@ -98,5 +111,10 @@ public class PlayService extends Service implements MediaPlayer.OnCompletionList
     public void setServiceCallBack(PlayServiceCallBack callBack) {
         this.mPlayServiceCallBack=callBack;
     }
-
+    private static class PlayHandler extends Handler{
+        private final WeakReference<PlayService> playServiceWeakReference;
+        public PlayHandler(PlayService service){
+            playServiceWeakReference=new WeakReference<>(service);
+        }
+    }
 }

@@ -23,7 +23,8 @@ import java.util.List;
 
 public class NetworkRequestUtils {
     private static final Gson gson=new Gson();
-    private static final String HOST_BASE_URL="http://192.168.1.67:18086";
+    //private static final String HOST_BASE_URL="http://192.168.1.67:18086";
+    private static final String HOST_BASE_URL="http://dawan.youke.ykhdedu.com/musicstore";
     private static final String RECOMMEND_MUSIC_URL=HOST_BASE_URL + "/recommend/getList";
     private static final String ALBUM_MUSIC_URL=HOST_BASE_URL + "/music/getList?albumId=";
     private static final String ALBUM_URL=HOST_BASE_URL + "/album/getList";
