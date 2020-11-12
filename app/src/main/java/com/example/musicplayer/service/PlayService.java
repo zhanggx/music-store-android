@@ -7,12 +7,14 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Binder;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
-import android.webkit.MimeTypeMap;
+import android.os.Looper;
+import android.os.Message;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.example.musicplayer.entity.Music;
@@ -42,13 +44,21 @@ public class PlayService extends Service implements MediaPlayer.OnCompletionList
     public static void unbindService(Activity activity, ServiceConnection serviceConnection){
         activity.unbindService(serviceConnection);
     }
-
+    private PlayHandler playHandler;
+    private PlayMusicInfo playMusicInfo=new PlayMusicInfo();
     @Override
     public void onCreate() {
         super.onCreate();
         myMediaPlayer.setOnCompletionListener(this);
         myMediaPlayer.setOnErrorListener(this);
         myMediaPlayer.setOnPreparedListener(this);
+        playHandler=new PlayHandler(this);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        playHandler.removeCallbacksAndMessages(null);
     }
 
     @Nullable
@@ -60,6 +70,12 @@ public class PlayService extends Service implements MediaPlayer.OnCompletionList
     @Override
     public void onPrepared(MediaPlayer mp) {
         mp.start();
+        playMusicInfo.setStatus(PlayMusicInfo.STATUS_PLAYING);
+        playMusicInfo.setDuration(mp.getDuration());
+        playHandler.startLoop();
+        if (mPlayServiceCallBack!=null) {
+            mPlayServiceCallBack.onMusicPlayStatusChanged(playMusicInfo);
+        }
     }
 
     public class LocalBinder extends Binder {
@@ -78,6 +94,7 @@ public class PlayService extends Service implements MediaPlayer.OnCompletionList
                 return Service.START_STICKY;
             }
             this.music=music;
+            playMusicInfo.setMusic(music);
             startPlay();
         }
         return Service.START_STICKY;
@@ -100,21 +117,118 @@ public class PlayService extends Service implements MediaPlayer.OnCompletionList
 
     @Override
     public void onCompletion(MediaPlayer mp) {
-
+        playMusicInfo.setStatus(PlayMusicInfo.STATUS_COMPLETED);
+        if (mPlayServiceCallBack!=null) {
+            mPlayServiceCallBack.onMusicPlayStatusChanged(playMusicInfo);
+        }
+        playHandler.stopLoop();
     }
 
     @Override
     public boolean onError(MediaPlayer mp, int what, int extra) {
+        playMusicInfo.setStatus(PlayMusicInfo.STATUS_STOP);
+        playHandler.stopLoop();
         return false;
     }
+
+    @Override
+    public void stopMusic() {
+        if (myMediaPlayer.isPlaying()){
+            playMusicInfo.setPosition(myMediaPlayer.getCurrentPosition());
+            playMusicInfo.setStatus(PlayMusicInfo.STATUS_STOP);
+            myMediaPlayer.stop();
+            playHandler.stopLoop();
+            if (mPlayServiceCallBack!=null) {
+                mPlayServiceCallBack.onMusicPlayStatusChanged(playMusicInfo);
+            }
+        }
+    }
+
+    @Override
+    public void startMusic() {
+        if (!myMediaPlayer.isPlaying()) {
+            if (playMusicInfo.getStatus()==PlayMusicInfo.STATUS_NONE||playMusicInfo.getStatus()==PlayMusicInfo.STATUS_STOP){
+                myMediaPlayer.prepareAsync();
+            }else {
+                myMediaPlayer.start();
+                playMusicInfo.setStatus(PlayMusicInfo.STATUS_PLAYING);
+                playMusicInfo.setDuration(myMediaPlayer.getDuration());
+                playHandler.startLoop();
+                if (mPlayServiceCallBack!=null) {
+                    mPlayServiceCallBack.onMusicPlayStatusChanged(playMusicInfo);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void pauseMusic() {
+        if (myMediaPlayer.isPlaying()){
+            playMusicInfo.setStatus(PlayMusicInfo.STATUS_PAUSE);
+            myMediaPlayer.pause();
+            playHandler.stopLoop();
+            if (mPlayServiceCallBack!=null) {
+                mPlayServiceCallBack.onMusicPlayStatusChanged(playMusicInfo);
+            }
+        }
+    }
+
+    @Override
+    public PlayMusicInfo getCurrentMusicInfo() {
+        if (myMediaPlayer.isPlaying()){
+            playMusicInfo.setPosition(myMediaPlayer.getCurrentPosition());
+        }
+        return playMusicInfo;
+    }
+
+    private boolean onMusicPlayProgress() {
+        if (myMediaPlayer.isPlaying()){
+            playMusicInfo.setPosition(myMediaPlayer.getCurrentPosition());
+            mPlayServiceCallBack.onMusicPlayProgress(playMusicInfo);
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public void setServiceCallBack(PlayServiceCallBack callBack) {
         this.mPlayServiceCallBack=callBack;
     }
+
+    @Override
+    public void seekTo(int progress) {
+        if (myMediaPlayer.isPlaying()){
+            myMediaPlayer.seekTo(progress);
+            playMusicInfo.setPosition(myMediaPlayer.getCurrentPosition());
+            mPlayServiceCallBack.onMusicPlayProgress(playMusicInfo);
+        }
+    }
+
     private static class PlayHandler extends Handler{
         private final WeakReference<PlayService> playServiceWeakReference;
         public PlayHandler(PlayService service){
+            super();
             playServiceWeakReference=new WeakReference<>(service);
+        }
+        void startLoop(){
+            if (this.hasMessages(0)){
+               this.removeMessages(0);
+            }
+            this.sendEmptyMessageDelayed(0,1000);
+        }
+        void stopLoop(){
+            this.removeMessages(0);
+        }
+
+        @Override
+        public void handleMessage(@NonNull Message msg) {
+            PlayService playService=playServiceWeakReference.get();
+            if (playService==null){
+                return;
+            }
+            if (playService.onMusicPlayProgress()){
+                this.sendEmptyMessageDelayed(0,1000);
+            }
         }
     }
 }
