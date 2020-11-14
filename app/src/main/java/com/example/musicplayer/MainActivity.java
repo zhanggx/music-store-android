@@ -13,8 +13,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.view.GestureDetector;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,9 +20,11 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
-import android.widget.Toast;
 
-import com.example.musicplayer.data.MusicDataUtils;
+import com.example.musicplayer.activity.AlbumManageActivity;
+import com.example.musicplayer.activity.PlayActivity;
+import com.example.musicplayer.activity.SingerManageActivity;
+import com.example.musicplayer.activity.SongManageActivity;
 import com.example.musicplayer.data.MusicPlayStatus;
 import com.example.musicplayer.entity.Music;
 import com.example.musicplayer.fragment.AlbumListFragment;
@@ -137,7 +137,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     PlayActivity.startPlayActivity(this,music);
                 }
             }
-
+            return true;
+        }
+        if (item.getItemId() == R.id.album_item) {
+            Intent intent=new Intent(this, AlbumManageActivity.class);
+            this.startActivity(intent);
+            return true;
+        }
+        if (item.getItemId() == R.id.signer_item) {
+            Intent intent=new Intent(this, SingerManageActivity.class);
+            this.startActivity(intent);
+            return true;
+        }
+        if (item.getItemId() == R.id.song_item) {
+            Intent intent=new Intent(this, SongManageActivity.class);
+            this.startActivity(intent);
             return true;
         }
         return super.onOptionsItemSelected(item);

@@ -8,18 +8,23 @@
         android:title="播放"
         app:showAsAction="ifRoom" />
     <item
-        android:id="@+id/item1"
-        android:title="编辑1"
+        android:id="@+id/album_item"
+        android:title="@string/album_manage"
         app:showAsAction="never">
     </item>
     <item
-        android:id="@+id/item2"
-        android:title="编辑2"
+        android:id="@+id/signer_item"
+        android:title="歌手管理"
         app:showAsAction="never">
     </item>
     <item
-        android:id="@+id/item3"
-        android:title="编辑3"
+        android:id="@+id/song_item"
+        android:title="歌曲管理"
+        app:showAsAction="never">
+    </item>
+    <item
+        android:id="@+id/recommend_item"
+        android:title="歌曲推荐"
         app:showAsAction="never">
     </item>
 </menu>

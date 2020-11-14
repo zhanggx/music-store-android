@@ -2,6 +2,7 @@ package com.example.musicplayer.fragment;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,6 +53,13 @@ public class SingerListFragment extends Fragment implements SwipeRefreshLayout.O
         fragmentRecyclerListBinding.listView.setLayoutManager(linearLayoutManager);
         fragmentRecyclerListBinding.listView.setAdapter(singerListAdapter);
         return fragmentRecyclerListBinding.getRoot();
+    }
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (!singerList.isEmpty()){
+            outState.putParcelableArrayList(Constants.LIST_DATA, (ArrayList<? extends Parcelable>) singerList);
+        }
     }
 
     @Override

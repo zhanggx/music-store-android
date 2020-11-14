@@ -1,4 +1,4 @@
-package com.example.musicplayer;
+package com.example.musicplayer.activity;
 
 import android.app.Activity;
 import android.content.ComponentName;
@@ -22,6 +22,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.bumptech.glide.Glide;
+import com.example.musicplayer.R;
 import com.example.musicplayer.data.MusicDataUtils;
 import com.example.musicplayer.data.MusicPlayStatus;
 import com.example.musicplayer.entity.Music;

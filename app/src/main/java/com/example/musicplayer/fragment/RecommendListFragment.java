@@ -2,6 +2,7 @@ package com.example.musicplayer.fragment;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,6 +53,13 @@ public class RecommendListFragment extends Fragment implements SwipeRefreshLayou
         fragmentRecyclerListBinding.listView.setLayoutManager(linearLayoutManager);
         fragmentRecyclerListBinding.listView.setAdapter(songListAdapter);
         return fragmentRecyclerListBinding.getRoot();
+    }
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (!musicList.isEmpty()){
+            outState.putParcelableArrayList(Constants.LIST_DATA, (ArrayList<? extends Parcelable>) musicList);
+        }
     }
 
     @Override

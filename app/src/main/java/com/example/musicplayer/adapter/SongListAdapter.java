@@ -12,31 +12,46 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.example.musicplayer.PlayActivity;
+import com.example.musicplayer.activity.AlbumActivity;
+import com.example.musicplayer.activity.PlayActivity;
 import com.example.musicplayer.R;
-import com.example.musicplayer.SingerActivity;
+import com.example.musicplayer.entity.Album;
 import com.example.musicplayer.entity.Music;
-import com.example.musicplayer.entity.Singer;
 import com.example.musicplayer.util.Constants;
 
 import java.util.List;
 
 public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.SongListViewHolder> implements View.OnClickListener {
+    public static final int MODE_NORMAL=0;
+    public static final int MODE_SIMPLE=1;
+    public static final int MODE_MANAGE=2;
     private final Activity activity;
     private final List<Music> musicList;
-    private final boolean mSimpleMode;
+    private final int mMode;
+    private final OnSongManageEventListener songManageEventListener;
     public SongListAdapter(Activity activity, List<Music> list){
-        this(activity,list,false);
+        this(activity,list,MODE_NORMAL,null);
     }
-    public SongListAdapter(Activity activity, List<Music> list,boolean simpleMode){
+    public SongListAdapter(Activity activity, List<Music> list,int mode){
+        this(activity,list,mode,null);
+    }
+    public SongListAdapter(Activity activity, List<Music> list,int mode, OnSongManageEventListener listener){
         this.activity= activity;
         this.musicList=list;
-        this.mSimpleMode=simpleMode;
+        this.mMode=mode;
+        this.songManageEventListener=listener;
     }
     @NonNull
     @Override
     public SongListViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        SongListViewHolder holder= new SongListViewHolder(LayoutInflater.from(activity).inflate(mSimpleMode?R.layout.item_song_simple:R.layout.item_song, parent, false));
+        SongListViewHolder holder= new SongListViewHolder(LayoutInflater.from(activity).inflate(mMode==MODE_SIMPLE?R.layout.item_song_simple:R.layout.item_song, parent, false));
+        if (mMode!=MODE_SIMPLE) {
+            holder.vwRightIcon.setVisibility(mMode==MODE_NORMAL?View.VISIBLE:View.GONE);
+            holder.vwDelButton.setVisibility(mMode==MODE_MANAGE?View.VISIBLE:View.GONE);
+        }
+        if (mMode==MODE_MANAGE) {
+            holder.vwDelButton.setOnClickListener(this);
+        }
         holder.itemView.setOnClickListener(this);
         return holder;
     }
@@ -49,6 +64,9 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.SongLi
             Glide.with(activity).load(music.getAlbumPictureUrl()).into(holder.imageView);
         }
         holder.itemView.setTag(music);
+        if (holder.vwDelButton!=null) {
+            holder.vwDelButton.setTag(music);
+        }
     }
 
     @Override
@@ -59,7 +77,21 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.SongLi
     @Override
     public void onClick(View v) {
         Music music=(Music)v.getTag();
-        PlayActivity.startPlayActivity(activity,music);
+
+        int id=v.getId();
+        if (id==R.id.del_button){
+            if (songManageEventListener!=null){
+                songManageEventListener.onRemoveSong(music);
+            }
+        }else {
+            if (mMode==MODE_MANAGE) {
+                if (songManageEventListener!=null){
+                    songManageEventListener.onSelectSong(music);
+                }
+            }else {
+                PlayActivity.startPlayActivity(activity,music);
+            }
+        }
     }
 
     public static class SongListViewHolder extends RecyclerView.ViewHolder{
@@ -68,6 +100,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.SongLi
         private final TextView albumText;
         private final TextView lenText;
         private final ImageView imageView;
+        private final View vwRightIcon,vwDelButton;
         public SongListViewHolder(@NonNull View itemView) {
             super(itemView);
             this.nameText=itemView.findViewById(R.id.name_text);
@@ -75,6 +108,8 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.SongLi
             this.albumText=itemView.findViewById(R.id.album_text);
             this.lenText=itemView.findViewById(R.id.len_text);
             this.imageView=itemView.findViewById(R.id.image);
+            this.vwRightIcon=itemView.findViewById(R.id.right_icon);
+            this.vwDelButton=itemView.findViewById(R.id.del_button);
         }
 
         public void bind(Music music) {
@@ -87,5 +122,9 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.SongLi
             }
             lenText.setText(music.getTimeLengthText());
         }
+    }
+    public interface OnSongManageEventListener {
+        void onRemoveSong(Music music);
+        void onSelectSong(Music music);
     }
 }

@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <application
+        android:name=".MusicStoreApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -24,14 +25,29 @@
         <activity android:name=".MainActivity"
             android:launchMode="singleTask" android:screenOrientation="portrait">
         </activity>
-        <activity android:name=".AlbumActivity">
+        <activity android:name=".activity.AlbumActivity">
         </activity>
-        <activity android:name=".SingerActivity" android:launchMode="singleTop">
+        <activity android:name=".activity.SingerActivity" android:launchMode="singleTop">
         </activity>
-        <activity android:name=".PlayActivity">
+        <activity android:name=".activity.PlayActivity">
+        </activity>
+        <activity android:name=".NotificationActivity">
         </activity>
         <service android:name=".service.PlayService" android:exported="false">
         </service>
+        <activity android:name=".activity.AlbumManageActivity">
+        </activity>
+        <activity android:name=".activity.AlbumEditActivity">
+        </activity>
+        <activity android:name=".activity.SingerManageActivity">
+        </activity>
+        <activity android:name=".activity.SingerEditActivity">
+        </activity>
+        <activity android:name=".activity.SongManageActivity">
+        </activity>
+        <activity android:name=".activity.SongEditActivity">
+        </activity>
+
     </application>
 
 </manifest>

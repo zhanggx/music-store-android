@@ -1,4 +1,4 @@
-package com.example.musicplayer;
+package com.example.musicplayer.activity;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -11,9 +11,8 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.bumptech.glide.Glide;
+import com.example.musicplayer.R;
 import com.example.musicplayer.adapter.AlbumListAdapter;
-import com.example.musicplayer.adapter.SongListAdapter;
-import com.example.musicplayer.databinding.ActivitySingerBinding;
 import com.example.musicplayer.databinding.ActivitySingerBinding;
 import com.example.musicplayer.entity.Singer;
 import com.example.musicplayer.entity.Album;
@@ -50,7 +49,7 @@ public class SingerActivity extends AppCompatActivity {
         }else{
             loadData();
         }
-        albumListAdapter=new AlbumListAdapter(this,albumList,true);
+        albumListAdapter=new AlbumListAdapter(this,albumList,AlbumListAdapter.MODE_SIMPLE);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this,LinearLayoutManager.VERTICAL,false);
         activitySingerBinding.listView.setLayoutManager(linearLayoutManager);
         activitySingerBinding.listView.setAdapter(albumListAdapter);

@@ -47,6 +47,15 @@
         android:src="@drawable/icon_right"
         android:layout_alignParentRight="true"
         android:layout_centerVertical="true"/>
+    <ImageView
+        android:id="@+id/del_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:layout_marginRight="6dp"
+        android:src="@drawable/del"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"/>
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp" android:background="#EBEBEB" android:layout_marginLeft="5dp" android:layout_marginRight="5dp" android:layout_alignParentBottom="true"/>
