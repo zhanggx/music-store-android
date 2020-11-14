@@ -23,9 +23,7 @@ import com.example.musicplayer.adapter.SongListAdapter;
 import com.example.musicplayer.data.MusicDataUtils;
 import com.example.musicplayer.databinding.FragmentRecyclerListBinding;
 import com.example.musicplayer.entity.Music;
-import com.example.musicplayer.entity.ResultBean;
 import com.example.musicplayer.util.Constants;
-import com.example.musicplayer.util.NetworkRequestUtils;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -48,7 +46,7 @@ public class CollectListFragment extends Fragment implements SwipeRefreshLayout.
             loadData();
         }
         songListAdapter=new SongListAdapter(getActivity(),musicList);
-        IntentFilter intentFilter = new IntentFilter(Constants.ACTION_MUSIC_DATA);
+        IntentFilter intentFilter = new IntentFilter(Constants.ACTION_MUSIC_DATA_CHANGED);
         LocalBroadcastManager.getInstance(getContext()).registerReceiver(mReceiver,intentFilter);
     }
     @Nullable

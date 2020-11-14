@@ -28,30 +28,29 @@ public class MusicDataUtils {
             if (!TextUtils.isEmpty(condition)) {
                 sql += " WHERE " + condition;
             }
+            sql += " ORDER BY collect_timeStamp DESC";
             Log.d(TAG, "query sql: " + sql);
             ArrayList<Music> infoArray = new ArrayList<Music>();
             cursor = sqliteDatabase.rawQuery(sql, null);
-            if (cursor.moveToFirst()) {
-                for (; !cursor.isLast(); cursor.moveToNext()) {
-                    Music info = new Music();
-                    info.setId(cursor.getInt(0));
-                    info.setName(cursor.getString(1));
-                    info.setAlbumId(cursor.getInt(2));
-                    info.setAlbumName(cursor.getString(3));
-                    info.setSingerId(cursor.getInt(4));
-                    info.setSingerName(cursor.getString(5));
-                    info.setTimeLength(cursor.getInt(6));
-                    info.setTimeLengthText(cursor.getString(7));
-                    info.setFileUrl(cursor.getString(8));
-                    info.setFilePath(cursor.getString(9));
-                    info.setFileSize(cursor.getInt(10));
-                    info.setFileSizeText(cursor.getString(11));
-                    info.setDescription(cursor.getString(12));
-                    info.setAlbumPictureUrl(cursor.getString(13));
-                    info.setTimeStamp(cursor.getString(14));
+            while (cursor.moveToNext()) {
+                Music info = new Music();
+                info.setId(cursor.getInt(0));
+                info.setName(cursor.getString(1));
+                info.setAlbumId(cursor.getInt(2));
+                info.setAlbumName(cursor.getString(3));
+                info.setSingerId(cursor.getInt(4));
+                info.setSingerName(cursor.getString(5));
+                info.setTimeLength(cursor.getInt(6));
+                info.setTimeLengthText(cursor.getString(7));
+                info.setFileUrl(cursor.getString(8));
+                info.setFilePath(cursor.getString(9));
+                info.setFileSize(cursor.getInt(10));
+                info.setFileSizeText(cursor.getString(11));
+                info.setDescription(cursor.getString(12));
+                info.setAlbumPictureUrl(cursor.getString(13));
+                info.setTimeStamp(cursor.getString(14));
 
-                    infoArray.add(info);
-                }
+                infoArray.add(info);
             }
             cursor.close();
             cursor=null;
@@ -97,14 +96,22 @@ public class MusicDataUtils {
         return delete(context,"id=?", new String[]{String.valueOf(id)});
     }
 
-    public static synchronized long insert(Context context,Music info) {
+    public static synchronized long insertOrUpdate(Context context,Music info) {
         SQLiteDatabase sqliteDatabase=null;
         Cursor cursor=null;
         try {
             MyDBHelper myDBHelper = new MyDBHelper(context);
             sqliteDatabase = myDBHelper.getWritableDatabase();
+            String sql = "select id from " + MyDBHelper.TABLE_NAME + " WHERE id=?";
+            cursor = sqliteDatabase.rawQuery(sql, new String[]{String.valueOf(info.getId())});
+            boolean exists=false;
+            if (cursor.moveToFirst()){
+                exists=true;
+            }
+            cursor.close();
+            cursor=null;
             ContentValues cv = new ContentValues();
-            cv.put("id", info.getId());
+            cv.put("collect_timeStamp", System.currentTimeMillis());
             cv.put("name", info.getName());
             cv.put("albumId", info.getAlbumId());
             cv.put("albumName", info.getAlbumName());
@@ -118,8 +125,14 @@ public class MusicDataUtils {
             cv.put("fileSizeText", info.getFileSizeText());
             cv.put("description", info.getDescription());
             cv.put("albumPictureUrl", info.getAlbumPictureUrl());
-            cv.put("timeStamp", info.getTimeStamp());;
-            long rowId = sqliteDatabase.insert(MyDBHelper.TABLE_NAME, null,cv);
+            cv.put("timeStamp", info.getTimeStamp());
+            if (exists){
+                int result = sqliteDatabase.update(MyDBHelper.TABLE_NAME, cv,"id=?", new String[]{String.valueOf(info.getId())});
+                return result;
+            }
+            cv.put("id", info.getId());
+
+            long rowId = sqliteDatabase.insert(MyDBHelper.TABLE_NAME, null, cv);
             return rowId;
         }catch (Throwable tr){
             tr.printStackTrace();
@@ -199,7 +212,8 @@ public class MusicDataUtils {
                     + "fileSizeText VARCHAR NOT NULL,"
                     + "description VARCHAR NOT NULL,"
                     + "albumPictureUrl VARCHAR NOT NULL,"
-                    + "timeStamp VARCHAR"
+                    + "timeStamp VARCHAR,"
+                    + "collect_timeStamp LONG"
                     + ");";
             Log.d(TAG, "create_sql:" + create_sql);
             db.execSQL(create_sql);

@@ -59,9 +59,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.SongLi
     @Override
     public void onClick(View v) {
         Music music=(Music)v.getTag();
-        Intent intent=new Intent(activity, PlayActivity.class);
-        intent.putExtra(Constants.DATA,music);
-        activity.startActivity(intent);
+        PlayActivity.startPlayActivity(activity,music);
     }
 
     public static class SongListViewHolder extends RecyclerView.ViewHolder{
