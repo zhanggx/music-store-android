@@ -1,6 +1,8 @@
 package com.example.musicplayer.activity;
 
+import android.app.Activity;
 import android.app.DatePickerDialog;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
@@ -9,12 +11,13 @@ import android.view.View;
 import android.widget.DatePicker;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.bumptech.glide.Glide;
 import com.example.musicplayer.R;
-import com.example.musicplayer.databinding.ActivityAlbumEditBinding;
+import com.example.musicplayer.databinding.ActivitySingerEditBinding;
 import com.example.musicplayer.entity.Album;
 import com.example.musicplayer.entity.ResultBean;
 import com.example.musicplayer.entity.Singer;
@@ -25,15 +28,16 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 public class SingerEditActivity extends AppCompatActivity implements View.OnClickListener {
-    private ActivityAlbumEditBinding albumEditBinding;
+    private ActivitySingerEditBinding singerEditBinding;
     private Singer singer;
-    private LocalDate mMusicDate;
+    private LocalDate mBirthdayDate;
     private static final DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private PicturePicker picturePicker;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        albumEditBinding = ActivityAlbumEditBinding.inflate(getLayoutInflater());
-        setContentView(albumEditBinding.getRoot());
+        singerEditBinding = ActivitySingerEditBinding.inflate(getLayoutInflater());
+        setContentView(singerEditBinding.getRoot());
         singer=getIntent().getParcelableExtra(Constants.DATA);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle(R.string.add_album);
@@ -41,24 +45,26 @@ public class SingerEditActivity extends AppCompatActivity implements View.OnClic
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);//添加默认的返回图标
         getSupportActionBar().setHomeButtonEnabled(true); //设置返回键可用
         if (singer!=null&&savedInstanceState==null){
-            albumEditBinding.nameText.setText(singer.getName());
-            albumEditBinding.descText.setText(singer.getDescription());
-            Glide.with(this).load(singer.getPictureUrl()).into(albumEditBinding.image);
+            singerEditBinding.nameText.setText(singer.getName());
+            singerEditBinding.descText.setText(singer.getDescription());
+            Glide.with(this).load(singer.getPictureUrl()).into(singerEditBinding.image);
         }
         if (savedInstanceState!=null){
             long date=savedInstanceState.getLong(Constants.STATE,0L);
-            mMusicDate =LocalDate.ofEpochDay(date);
+            mBirthdayDate =LocalDate.ofEpochDay(date);
         }else{
 
-            mMusicDate =LocalDate.now();
+            mBirthdayDate =LocalDate.now();
         }
-        albumEditBinding.publishTimeText.setText(mMusicDate.format(fmt));
-        albumEditBinding.publishTimeLayout.setOnClickListener(this);
+        picturePicker=new PicturePicker(this);
+        singerEditBinding.birthdayText.setText(mBirthdayDate.format(fmt));
+        singerEditBinding.birthdayLayout.setOnClickListener(this);
+        singerEditBinding.selectPicButton.setOnClickListener(this);
     }
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putLong(Constants.STATE, mMusicDate.toEpochDay());
+        outState.putLong(Constants.STATE, mBirthdayDate.toEpochDay());
     }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -77,6 +83,19 @@ public class SingerEditActivity extends AppCompatActivity implements View.OnClic
         getMenuInflater().inflate(R.menu.menu_save,menu);
         return true;
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,String permissions[], int[] grantResults) {
+        picturePicker.onRequestPermissionsResult(requestCode, permissions,grantResults);
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode,resultCode,data);
+        if (resultCode== Activity.RESULT_OK) {
+            picturePicker.onActivityResultOk(requestCode, data);
+        }
+    }
+
     private void saveData(){
         //new SaveAsyncTask(this,album).execute();
     }
@@ -84,17 +103,21 @@ public class SingerEditActivity extends AppCompatActivity implements View.OnClic
     @Override
     public void onClick(View v) {
         int viewId=v.getId();
-        if (viewId==R.id.publish_time_layout){
+        if (viewId==R.id.birthday_layout){
             new DatePickerDialog(this, 0, new DatePickerDialog.OnDateSetListener() {
                 // 绑定监听器(How the parent is notified that the date is set.)
                 @Override
                 public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
                     // 此处得到选择的时间，可以进行你想要的操作
-                    mMusicDate=LocalDate.of(year,monthOfYear,dayOfMonth);
-                    albumEditBinding.publishTimeText.setText(mMusicDate.format(fmt));
+                    mBirthdayDate=LocalDate.of(year,monthOfYear,dayOfMonth);
+                    singerEditBinding.birthdayText.setText(mBirthdayDate.format(fmt));
                 }
-            },mMusicDate.getYear(),mMusicDate.getMonthValue(),mMusicDate.getDayOfMonth()).show();
-
+            },mBirthdayDate.getYear(),mBirthdayDate.getMonthValue(),mBirthdayDate.getDayOfMonth()).show();
+            return;
+        }
+        if (viewId==R.id.select_pic_button){
+            picturePicker.startPick();
+            return;
         }
     }
 

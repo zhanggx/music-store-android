@@ -28,7 +28,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SongManageActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener, SongListAdapter.OnSongManageEventListener {
+public class RecommendManageActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener, SongListAdapter.OnSongManageEventListener {
     private static final int REQUEST_CODE_ADD=1000;
     private static final int REQUEST_CODE_EDIT=1001;
 
@@ -43,7 +43,7 @@ public class SongManageActivity extends AppCompatActivity implements SwipeRefres
         swipeRefreshView=findViewById(R.id.swipe_refresh_view);
         recyclerView=findViewById(R.id.list_view);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbar.setTitle(R.string.song_manage);
+        toolbar.setTitle(R.string.song_recommend);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);//添加默认的返回图标
         getSupportActionBar().setHomeButtonEnabled(true); //设置返回键可用
@@ -132,19 +132,17 @@ public class SongManageActivity extends AppCompatActivity implements SwipeRefres
 
     @Override
     public void onSelectSong(Music music) {
-        Intent intent=new Intent(this, SongEditActivity.class);
-        intent.putExtra(Constants.DATA,music);
-        this.startActivityForResult(intent,REQUEST_CODE_EDIT);
+
     }
 
     private static class SongAsyncTask extends AsyncTask<Void,Void, ResultBean<List<Music>>> {
-        private final WeakReference<SongManageActivity> activityWeakReference;
-        public SongAsyncTask(SongManageActivity activity){
+        private final WeakReference<RecommendManageActivity> activityWeakReference;
+        public SongAsyncTask(RecommendManageActivity activity){
             activityWeakReference=new WeakReference<>(activity);
         }
         @Override
         protected ResultBean<List<Music>> doInBackground(Void... voids) {
-            SongManageActivity activity =activityWeakReference.get();
+            RecommendManageActivity activity =activityWeakReference.get();
             if (activity ==null){
                 return null;
             }
@@ -154,7 +152,7 @@ public class SongManageActivity extends AppCompatActivity implements SwipeRefres
         @Override
         protected void onPostExecute(ResultBean<List<Music>> resultBean) {
             super.onPostExecute(resultBean);
-            SongManageActivity activity =activityWeakReference.get();
+            RecommendManageActivity activity =activityWeakReference.get();
             if (activity ==null){
                 return;
             }

@@ -23,6 +23,7 @@ import android.widget.ImageView;
 
 import com.example.musicplayer.activity.AlbumManageActivity;
 import com.example.musicplayer.activity.PlayActivity;
+import com.example.musicplayer.activity.RecommendManageActivity;
 import com.example.musicplayer.activity.SingerManageActivity;
 import com.example.musicplayer.activity.SongManageActivity;
 import com.example.musicplayer.data.MusicPlayStatus;
@@ -151,6 +152,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         if (item.getItemId() == R.id.song_item) {
             Intent intent=new Intent(this, SongManageActivity.class);
+            this.startActivity(intent);
+            return true;
+        }
+        if (item.getItemId() == R.id.recommend_item) {
+            Intent intent=new Intent(this, RecommendManageActivity.class);
             this.startActivity(intent);
             return true;
         }

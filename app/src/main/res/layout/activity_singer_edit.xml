@@ -36,7 +36,7 @@
                     android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical"
                     android:layout_marginTop="10dp" android:layout_marginBottom="10dp">
                     <TextView
-                        android:text="封面："
+                        android:text="头像："
                         style="@style/edit_text_style"/>
                     <LinearLayout
                         style="@style/edit_input_layout_style"
@@ -69,57 +69,19 @@
                             style="@style/edit_box_style" />
                     </LinearLayout>
                 </LinearLayout>
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp" android:background="#EBEBEB"/>
-            <LinearLayout style="@style/edit_layout_style">
-                <TextView
-                    android:text="音乐数量："
-                    style="@style/edit_text_style"/>
-                <LinearLayout
-                    style="@style/edit_input_layout_style">
-                    <EditText
-                        android:id="@+id/count_text"
-                        style="@style/edit_box_style"
-                        android:inputType="number"/>
-                </LinearLayout>
-            </LinearLayout>
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp" android:background="#EBEBEB"/>
             <LinearLayout style="@style/edit_layout_style">
                 <TextView
-                    android:text="发行时间："
+                    android:text="生日："
                     style="@style/edit_text_style"/>
                 <LinearLayout
-                    android:id="@+id/publish_time_layout"
+                    android:id="@+id/birthday_layout"
                     style="@style/edit_input_layout_style">
                     <TextView
-                        android:id="@+id/publish_time_text"
+                        android:id="@+id/birthday_text"
                         style="@style/edit_box_style"/>
-                </LinearLayout>
-            </LinearLayout>
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp" android:background="#EBEBEB"/>
-            <LinearLayout style="@style/edit_layout_style">
-                <TextView
-                    android:text="歌手："
-                    style="@style/edit_text_style"/>
-                <LinearLayout
-                    style="@style/edit_input_layout_style">
-
-                </LinearLayout>
-            </LinearLayout>
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp" android:background="#EBEBEB"/>
-            <LinearLayout style="@style/edit_layout_style">
-                <TextView
-                    android:text="专辑类型："
-                    style="@style/edit_text_style"/>
-                <LinearLayout
-                    style="@style/edit_input_layout_style">
                 </LinearLayout>
             </LinearLayout>
             <View
