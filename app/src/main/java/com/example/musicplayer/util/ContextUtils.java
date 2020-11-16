@@ -1,8 +1,11 @@
 package com.example.musicplayer.util;
 
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.util.Log;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 
 import java.util.List;
 
@@ -30,5 +33,30 @@ public class ContextUtils {
             }
         }
         return false;
+    }
+    public static void hideSoftInput(Context context, View editText) {
+        InputMethodManager imm = (InputMethodManager) context
+                .getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (editText != null) {
+            imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
+        }
+    }
+    /**
+     * 隐藏软键盘
+     *
+     * @param activity
+     */
+    public static void hideSoftKeyboard(Activity activity) {
+        try {
+            View view = activity.getCurrentFocus();
+            if (view != null) {
+                InputMethodManager inputMethodManager = (InputMethodManager) activity
+                        .getSystemService(Activity.INPUT_METHOD_SERVICE);
+                inputMethodManager.hideSoftInputFromWindow(activity
+                        .getCurrentFocus().getWindowToken(), 0);
+            }
+        } catch (Throwable tr) {
+            tr.printStackTrace();
+        }
     }
 }

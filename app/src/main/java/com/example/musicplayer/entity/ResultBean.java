@@ -2,33 +2,13 @@ package com.example.musicplayer.entity;
 
 import com.google.gson.JsonObject;
 
-public class ResultBean<T> {
-    private boolean success;
-    private int errorCode;
-    private String text;
+public class ResultBean<T> extends ResultBeanBase {
     private T data;
     public ResultBean(){
 
     }
     public ResultBean(JsonObject jsonObject){
-        success=jsonObject.get("success").getAsBoolean();
-        errorCode=jsonObject.get("errorCode").getAsInt();
-        text=jsonObject.get("text").getAsString();
-    }
-    public boolean isSuccess() {
-        return success;
-    }
-
-    public void setSuccess(boolean success) {
-        this.success = success;
-    }
-
-    public int getErrorCode() {
-        return errorCode;
-    }
-
-    public void setErrorCode(int errorCode) {
-        this.errorCode = errorCode;
+        super(jsonObject);
     }
 
     public T getData() {
@@ -37,13 +17,5 @@ public class ResultBean<T> {
 
     public void setData(T data) {
         this.data = data;
-    }
-
-    public String getText() {
-        return text;
-    }
-
-    public void setText(String text) {
-        this.text = text;
     }
 }

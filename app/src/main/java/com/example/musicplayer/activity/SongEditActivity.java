@@ -1,6 +1,9 @@
 package com.example.musicplayer.activity;
 
+import android.app.Activity;
 import android.app.DatePickerDialog;
+import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -10,6 +13,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.DatePicker;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,8 +29,10 @@ import com.example.musicplayer.entity.ItemObject;
 import com.example.musicplayer.entity.Music;
 import com.example.musicplayer.entity.MusicTheme;
 import com.example.musicplayer.entity.ResultBean;
+import com.example.musicplayer.entity.ResultBeanBase;
 import com.example.musicplayer.entity.Singer;
 import com.example.musicplayer.util.Constants;
+import com.example.musicplayer.util.ContextUtils;
 import com.example.musicplayer.util.NetworkRequestUtils;
 
 import java.lang.ref.WeakReference;
@@ -53,10 +59,14 @@ public class SongEditActivity extends AppCompatActivity implements AdapterView.O
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);//添加默认的返回图标
         getSupportActionBar().setHomeButtonEnabled(true); //设置返回键可用
-        if (music!=null&&savedInstanceState==null){
-            songEditBinding.nameText.setText(music.getName());
-            songEditBinding.lengthText.setText(String.valueOf(music.getTimeLength()));
-            songEditBinding.descText.setText(music.getDescription());
+        if (music!=null){
+            songEditBinding.musicFileLayout.setVisibility(View.GONE);
+            songEditBinding.musicFileView.setVisibility(View.GONE);
+            if (savedInstanceState==null) {
+                songEditBinding.nameText.setText(music.getName());
+                songEditBinding.lengthText.setText(String.valueOf(music.getTimeLength()));
+                songEditBinding.descText.setText(music.getDescription());
+            }
         }
         if (savedInstanceState!=null){
             List<Album> list=savedInstanceState.getParcelableArrayList(Constants.LIST_DATA);
@@ -105,6 +115,36 @@ public class SongEditActivity extends AppCompatActivity implements AdapterView.O
         return true;
     }
     private void saveData(){
+        String name=songEditBinding.nameText.getText().toString().trim();
+        if (TextUtils.isEmpty(name)){
+            Toast.makeText(this,"请输入名称",Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if(albumId<=0){
+            Toast.makeText(this,"请选择专辑",Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String lenStr=songEditBinding.lengthText.getText().toString().trim();
+        if (TextUtils.isEmpty(name)){
+            Toast.makeText(this,"请输入歌曲长度",Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if(!TextUtils.isDigitsOnly(lenStr)){
+            Toast.makeText(this,"请输入正确的歌曲长度",Toast.LENGTH_SHORT).show();
+            return;
+        }
+        ContextUtils.hideSoftInput(this,songEditBinding.nameText);
+        String description=songEditBinding.descText.getText().toString().trim();
+        Music music;
+        if (this.music==null) {
+            music = new Music();
+        }else {
+            music=new Music(this.music);
+        }
+        music.setName(name);
+        music.setAlbumId(albumId);
+        music.setTimeLength(Integer.parseInt(lenStr));
+        music.setDescription(description);
         new SaveAsyncTask(this,music).execute();
     }
 
@@ -124,6 +164,23 @@ public class SongEditActivity extends AppCompatActivity implements AdapterView.O
             if (position>=0) {
                 songEditBinding.albumSpinner.setSelection(position);
             }
+        }
+    }
+
+    private void onSaveMusic(ResultBeanBase resultBean,Music music) {
+        if (resultBean==null){
+            Toast.makeText(this, R.string.network_error_msg,Toast.LENGTH_SHORT).show();
+        }else if (resultBean.isSuccess()){
+            if (this.music!=null) {
+                Intent intent=new Intent();
+                intent.putExtra(Constants.DATA,music);
+                this.setResult(Activity.RESULT_OK,intent);
+            }else{
+                this.setResult(Activity.RESULT_OK);
+            }
+            this.finish();
+        }else{
+            Toast.makeText(this, resultBean.getText(),Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -172,30 +229,44 @@ public class SongEditActivity extends AppCompatActivity implements AdapterView.O
         }
     }
 
-    private static class SaveAsyncTask extends AsyncTask<Void,Void, ResultBean> {
+    private static class SaveAsyncTask extends AsyncTask<Void,Void, ResultBeanBase> {
         private final WeakReference<SongEditActivity> activityWeakReference;
         private final Music music;
+        private ProgressDialog progressDialog;
         public SaveAsyncTask(SongEditActivity activity,Music music){
             activityWeakReference=new WeakReference<>(activity);
             this.music=music;
+            try{
+                progressDialog=ProgressDialog.show(activity,"歌曲管理","正在保存，请稍候...");
+            }catch(Throwable tr){
+                tr.printStackTrace();
+            }
         }
         @Override
-        protected ResultBean doInBackground(Void... voids) {
+        protected ResultBeanBase doInBackground(Void... voids) {
             SongEditActivity activity =activityWeakReference.get();
             if (activity ==null){
                 return null;
             }
-            //return NetworkRequestUtils.saveAlbum(album);
+            if (music.getId()>0) {
+                return NetworkRequestUtils.updateMusic(music);
+            }
             return null;
         }
 
         @Override
-        protected void onPostExecute(ResultBean resultBean) {
+        protected void onPostExecute(ResultBeanBase resultBean) {
             super.onPostExecute(resultBean);
+            try {
+                progressDialog.dismiss();
+            }catch(Throwable tr){
+                tr.printStackTrace();
+            }
             SongEditActivity activity =activityWeakReference.get();
             if (activity ==null){
                 return;
             }
+            activity.onSaveMusic(resultBean,music);
         }
     }
 

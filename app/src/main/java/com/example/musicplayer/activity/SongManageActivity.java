@@ -1,5 +1,6 @@
 package com.example.musicplayer.activity;
 
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -10,6 +11,7 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -87,6 +89,27 @@ public class SongManageActivity extends AppCompatActivity implements SwipeRefres
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_add,menu);
         return true;
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode,resultCode,data);
+
+        if (resultCode== Activity.RESULT_OK) {
+            if (requestCode==REQUEST_CODE_EDIT){
+                Music music=data.getParcelableExtra(Constants.DATA);
+                if (music!=null){
+                    for(Music m:songList){
+                        if (music.getId()==m.getId()){
+                            m.copyFrom(music);
+                            songListAdapter.notifyDataSetChanged();
+                            break;
+                        }
+                    }
+                }
+            }else{
+                loadData();
+            }
+        }
     }
     @Override
     public void onRefresh() {

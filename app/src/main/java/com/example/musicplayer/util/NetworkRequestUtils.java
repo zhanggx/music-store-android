@@ -8,6 +8,7 @@ import com.example.musicplayer.entity.Album;
 import com.example.musicplayer.entity.Music;
 import com.example.musicplayer.entity.MusicTheme;
 import com.example.musicplayer.entity.ResultBean;
+import com.example.musicplayer.entity.ResultBeanBase;
 import com.example.musicplayer.entity.Singer;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -16,6 +17,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -33,6 +35,7 @@ public class NetworkRequestUtils {
     private static final String SINGER_ALBUM_URL=HOST_BASE_URL + "/album/getList?singerId=";
     private static final String SINGER_URL=HOST_BASE_URL + "/singer/getList";
     private static final String THEME_URL=HOST_BASE_URL + "/theme/getList";
+    private static final String UPDATE_MUSIC_URL=HOST_BASE_URL + "/music/update";
 
     public static ResultBean<List<Music>> getRecommendMusicList(){
         try {
@@ -116,9 +119,22 @@ public class NetworkRequestUtils {
         }
         return null;
     }
+    public static ResultBeanBase updateMusic(Music music){
+        try {
+            String json=gson.toJson(music);
+            String result = postJsonData(UPDATE_MUSIC_URL,json);
+            if (!TextUtils.isEmpty(result)){
+                ResultBeanBase resultBean = gson.fromJson(result, new TypeToken<ResultBeanBase>() {
+                }.getType());
+                return resultBean;
+            }
+        }catch(Throwable tr){
+            tr.printStackTrace();
+        }
+        return null;
+    }
 
     public static String get(String httpUrl) throws IOException {
-
         URL url = new URL(httpUrl);
         //得到connection对象。
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -138,6 +154,33 @@ public class NetworkRequestUtils {
         connection.disconnect();
         return null;
 	}
+    public static String postJsonData(String httpUrl,String json) throws IOException {
+        URL url = new URL(httpUrl);
+        //得到connection对象。
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        //设置请求方式
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Content-Type", "application/json");
+        //连接
+        connection.connect();
+        DataOutputStream out = new DataOutputStream(connection.getOutputStream());
+        //String json = java.net.URLEncoder.encode(obj.toString(), "utf-8");
+        out.writeBytes(json);
+        out.flush();
+        out.close();
+
+        //得到响应码
+        int responseCode = connection.getResponseCode();
+        if(responseCode == HttpURLConnection.HTTP_OK){
+            //得到响应流
+            InputStream inputStream = connection.getInputStream();
+            //将响应流转换成字符串
+            String result = getStringFromStream(inputStream);//将流转换为字符串。
+            return result;
+        }
+        connection.disconnect();
+        return null;
+    }
     private static String getStringFromStream(InputStream is) throws IOException {
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is,"utf-8"));
         String line = "";

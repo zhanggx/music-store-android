@@ -28,6 +28,10 @@ public class Music implements Parcelable {
     public Music(){
 
     }
+    public Music(Music music){
+        id = music.id;
+        copyFrom(music);
+    }
 
     protected Music(Parcel in) {
         id = in.readInt();
@@ -201,5 +205,22 @@ public class Music implements Parcelable {
 
     public void setAlbumPictureUrl(String albumPictureUrl) {
         this.albumPictureUrl = albumPictureUrl;
+    }
+
+    public void copyFrom(Music music) {
+        name = music.name;
+        albumId = music.albumId;
+        albumName = music.albumName;
+        singerId = music.singerId;
+        singerName = music.singerName;
+        timeLengthText = music.timeLengthText;
+        timeLength = music.timeLength;
+        fileUrl = music.fileUrl;
+        filePath = music.filePath;
+        fileSize = music.fileSize;
+        fileSizeText = music.fileSizeText;
+        description = music.description;
+        albumPictureUrl = music.albumPictureUrl;
+        timeStamp = music.timeStamp;
     }
 }

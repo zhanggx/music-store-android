@@ -1,6 +1,8 @@
 package com.example.musicplayer.activity;
 
+import android.app.Activity;
 import android.app.DatePickerDialog;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -13,6 +15,7 @@ import android.widget.AdapterView;
 import android.widget.DatePicker;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -143,6 +146,19 @@ public class AlbumEditActivity extends AppCompatActivity implements View.OnClick
         getMenuInflater().inflate(R.menu.menu_save,menu);
         return true;
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,String permissions[], int[] grantResults) {
+        picturePicker.onRequestPermissionsResult(requestCode, permissions,grantResults);
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode,resultCode,data);
+        picturePicker.onActivityResultOk(requestCode, resultCode,data);
+        if (resultCode== Activity.RESULT_OK) {
+        }
+    }
+
     private void saveData(){
         new SaveAsyncTask(this,album).execute();
     }
