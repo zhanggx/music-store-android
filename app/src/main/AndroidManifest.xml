@@ -37,21 +37,21 @@
         </service>
         <activity android:name=".activity.AlbumManageActivity">
         </activity>
-        <activity android:name=".activity.AlbumEditActivity">
+        <activity android:name=".activity.AlbumEditActivity" android:windowSoftInputMode="stateVisible|adjustResize">
         </activity>
         <activity android:name=".activity.SingerManageActivity">
         </activity>
-        <activity android:name=".activity.SingerEditActivity">
+        <activity android:name=".activity.SingerEditActivity" android:windowSoftInputMode="stateVisible|adjustResize">
         </activity>
         <activity android:name=".activity.SongManageActivity">
         </activity>
-        <activity android:name=".activity.SongEditActivity">
+        <activity android:name=".activity.SongEditActivity" android:windowSoftInputMode="stateVisible|adjustResize">
         </activity>
         <activity android:name=".activity.RecommendManageActivity">
         </activity>
         <provider
-            android:name="android.support.v4.content.FileProvider"
-            android:authorities="com.feige.pickphoto.fileprovider"
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.example.musicplayer.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

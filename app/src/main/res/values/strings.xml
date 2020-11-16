@@ -17,10 +17,13 @@
 
     <string name="confirm_remove_album">是否确定删除专辑？</string>
     <string name="add_album">添加专辑</string>
+    <string name="edit_album">编辑专辑</string>
 
     <string name="confirm_remove_singer">是否确定删除歌手？</string>
     <string name="add_singer">添加歌手</string>
+    <string name="edit_singer">编辑歌手</string>
     <string name="confirm_remove_song">是否确定删除歌曲？</string>
     <string name="add_song">添加歌曲</string>
+    <string name="edit_song">编辑歌曲</string>
 
 </resources>

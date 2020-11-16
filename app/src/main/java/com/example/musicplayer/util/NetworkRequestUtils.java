@@ -1,10 +1,12 @@
 package com.example.musicplayer.util;
 
+import android.content.res.Resources;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.example.musicplayer.entity.Album;
 import com.example.musicplayer.entity.Music;
+import com.example.musicplayer.entity.MusicTheme;
 import com.example.musicplayer.entity.ResultBean;
 import com.example.musicplayer.entity.Singer;
 import com.google.gson.Gson;
@@ -30,6 +32,7 @@ public class NetworkRequestUtils {
     private static final String ALBUM_URL=HOST_BASE_URL + "/album/getList";
     private static final String SINGER_ALBUM_URL=HOST_BASE_URL + "/album/getList?singerId=";
     private static final String SINGER_URL=HOST_BASE_URL + "/singer/getList";
+    private static final String THEME_URL=HOST_BASE_URL + "/theme/getList";
 
     public static ResultBean<List<Music>> getRecommendMusicList(){
         try {
@@ -59,6 +62,19 @@ public class NetworkRequestUtils {
         return null;
     }
 
+    public static ResultBean<List<MusicTheme>> getThemeList(){
+        try {
+            String result = get(THEME_URL);
+            if (!TextUtils.isEmpty(result)){
+                ResultBean<List<MusicTheme>> resultBean = gson.fromJson(result, new TypeToken<ResultBean<List<MusicTheme>>>() {
+                }.getType());
+                return resultBean;
+            }
+        }catch(Throwable tr){
+            tr.printStackTrace();
+        }
+        return null;
+    }
     public static ResultBean<List<Album>> getAlbumList(){
         try {
             String result = get(ALBUM_URL);

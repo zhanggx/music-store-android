@@ -5,6 +5,7 @@ import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -27,12 +28,13 @@ import java.lang.ref.WeakReference;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-public class SingerEditActivity extends AppCompatActivity implements View.OnClickListener {
+public class SingerEditActivity extends AppCompatActivity implements View.OnClickListener, PicturePicker.OnPicturePickedListener {
     private ActivitySingerEditBinding singerEditBinding;
     private Singer singer;
     private LocalDate mBirthdayDate;
     private static final DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private PicturePicker picturePicker;
+    private String mImagePath;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,7 +42,7 @@ public class SingerEditActivity extends AppCompatActivity implements View.OnClic
         setContentView(singerEditBinding.getRoot());
         singer=getIntent().getParcelableExtra(Constants.DATA);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbar.setTitle(R.string.add_album);
+        toolbar.setTitle(singer!=null?R.string.edit_singer:R.string.add_singer);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);//添加默认的返回图标
         getSupportActionBar().setHomeButtonEnabled(true); //设置返回键可用
@@ -50,13 +52,17 @@ public class SingerEditActivity extends AppCompatActivity implements View.OnClic
             Glide.with(this).load(singer.getPictureUrl()).into(singerEditBinding.image);
         }
         if (savedInstanceState!=null){
+            mImagePath=savedInstanceState.getString(Constants.STATE_IMAGE);
             long date=savedInstanceState.getLong(Constants.STATE,0L);
             mBirthdayDate =LocalDate.ofEpochDay(date);
+            if (!TextUtils.isEmpty(mImagePath)){
+                Glide.with(this).load(mImagePath).into(singerEditBinding.image);
+            }
         }else{
 
             mBirthdayDate =LocalDate.now();
         }
-        picturePicker=new PicturePicker(this);
+        picturePicker=new PicturePicker(this,this);
         singerEditBinding.birthdayText.setText(mBirthdayDate.format(fmt));
         singerEditBinding.birthdayLayout.setOnClickListener(this);
         singerEditBinding.selectPicButton.setOnClickListener(this);
@@ -65,6 +71,9 @@ public class SingerEditActivity extends AppCompatActivity implements View.OnClic
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putLong(Constants.STATE, mBirthdayDate.toEpochDay());
+        if(mImagePath!=null){
+            outState.putString(Constants.STATE_IMAGE, mImagePath);
+        }
     }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -91,8 +100,8 @@ public class SingerEditActivity extends AppCompatActivity implements View.OnClic
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode,resultCode,data);
+        picturePicker.onActivityResultOk(requestCode, resultCode,data);
         if (resultCode== Activity.RESULT_OK) {
-            picturePicker.onActivityResultOk(requestCode, data);
         }
     }
 
@@ -116,9 +125,15 @@ public class SingerEditActivity extends AppCompatActivity implements View.OnClic
             return;
         }
         if (viewId==R.id.select_pic_button){
-            picturePicker.startPick();
+            picturePicker.showPickDialog();
             return;
         }
+    }
+
+    @Override
+    public void onPicturePicked(String imagePath) {
+        this.mImagePath=imagePath;
+        Glide.with(this).load(mImagePath).into(singerEditBinding.image);
     }
 
 

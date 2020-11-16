@@ -7,7 +7,7 @@ import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
 
-public class Singer implements Parcelable {
+public class Singer implements Parcelable,ItemObject {
     private int id;
     private String name;;
     private String picturePath;
