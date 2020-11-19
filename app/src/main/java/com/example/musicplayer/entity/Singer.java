@@ -15,14 +15,18 @@ public class Singer implements Parcelable,ItemObject {
 
     private String birthday;
     private String description;
-
-    public Singer(){
-
-    }
     /**
      * 创建时间
      */
     private String timeStamp;
+
+    public Singer(){
+
+    }
+    public Singer(Singer singer){
+        id = singer.id;
+        copyFrom(singer);
+    }
 
     protected Singer(Parcel in) {
         id = in.readInt();
@@ -117,5 +121,14 @@ public class Singer implements Parcelable,ItemObject {
 
     public void setPicturePath(String picturePath) {
         this.picturePath = picturePath;
+    }
+
+    public void copyFrom(Singer singer) {
+        name = singer.name;
+        picturePath = singer.picturePath;
+        pictureUrl = singer.pictureUrl;
+        birthday = singer.birthday;
+        description = singer.description;
+        timeStamp = singer.timeStamp;
     }
 }

@@ -1,5 +1,9 @@
 package com.example.musicplayer.fragment;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -11,6 +15,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
@@ -30,6 +35,7 @@ public class SingerListFragment extends Fragment implements SwipeRefreshLayout.O
     private FragmentRecyclerListBinding fragmentRecyclerListBinding;
     private final List<Singer> singerList=new ArrayList<>();
     private SingerListAdapter singerListAdapter;
+    private SingerChangedBroadcastReceiver singerChangedBroadcastReceiver=new SingerChangedBroadcastReceiver();
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,6 +48,13 @@ public class SingerListFragment extends Fragment implements SwipeRefreshLayout.O
             loadData();
         }
         singerListAdapter=new SingerListAdapter(getActivity(),singerList);
+        IntentFilter intentFilter = new IntentFilter(Constants.ACTION_SINGER_CHANGED);
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(singerChangedBroadcastReceiver,intentFilter);
+    }
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(singerChangedBroadcastReceiver);
     }
     @Nullable
     @Override
@@ -106,4 +119,14 @@ public class SingerListFragment extends Fragment implements SwipeRefreshLayout.O
             singerListFragment.onUpdateMusicList(resultBean);
         }
     }
+    private class SingerChangedBroadcastReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (isAdded()){
+                loadData();
+            }
+        }
+    }
+
 }

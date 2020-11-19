@@ -47,10 +47,10 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.SongLi
         SongListViewHolder holder= new SongListViewHolder(LayoutInflater.from(activity).inflate(mMode==MODE_SIMPLE?R.layout.item_song_simple:R.layout.item_song, parent, false));
         if (mMode!=MODE_SIMPLE) {
             holder.vwRightIcon.setVisibility(mMode==MODE_NORMAL?View.VISIBLE:View.GONE);
-            holder.vwDelButton.setVisibility(mMode==MODE_MANAGE?View.VISIBLE:View.GONE);
+            holder.vwMenuButton.setVisibility(mMode==MODE_MANAGE?View.VISIBLE:View.GONE);
         }
         if (mMode==MODE_MANAGE) {
-            holder.vwDelButton.setOnClickListener(this);
+            holder.vwMenuButton.setOnClickListener(this);
         }
         holder.itemView.setOnClickListener(this);
         return holder;
@@ -64,8 +64,8 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.SongLi
             Glide.with(activity).load(music.getAlbumPictureUrl()).into(holder.imageView);
         }
         holder.itemView.setTag(music);
-        if (holder.vwDelButton!=null) {
-            holder.vwDelButton.setTag(music);
+        if (holder.vwMenuButton!=null) {
+            holder.vwMenuButton.setTag(music);
         }
     }
 
@@ -79,9 +79,9 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.SongLi
         Music music=(Music)v.getTag();
 
         int id=v.getId();
-        if (id==R.id.del_button){
+        if (id==R.id.menu_button){
             if (songManageEventListener!=null){
-                songManageEventListener.onRemoveSong(music);
+                songManageEventListener.onSongMoreButtonClick(v,music);
             }
         }else {
             if (mMode==MODE_MANAGE) {
@@ -100,7 +100,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.SongLi
         private final TextView albumText;
         private final TextView lenText;
         private final ImageView imageView;
-        private final View vwRightIcon,vwDelButton;
+        private final View vwRightIcon,vwMenuButton;
         public SongListViewHolder(@NonNull View itemView) {
             super(itemView);
             this.nameText=itemView.findViewById(R.id.name_text);
@@ -109,7 +109,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.SongLi
             this.lenText=itemView.findViewById(R.id.len_text);
             this.imageView=itemView.findViewById(R.id.image);
             this.vwRightIcon=itemView.findViewById(R.id.right_icon);
-            this.vwDelButton=itemView.findViewById(R.id.del_button);
+            this.vwMenuButton=itemView.findViewById(R.id.menu_button);
         }
 
         public void bind(Music music) {
@@ -124,7 +124,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.SongLi
         }
     }
     public interface OnSongManageEventListener {
-        void onRemoveSong(Music music);
+        void onSongMoreButtonClick(View anchorView,Music music);
         void onSelectSong(Music music);
     }
 }

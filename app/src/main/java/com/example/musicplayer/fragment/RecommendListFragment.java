@@ -1,5 +1,9 @@
 package com.example.musicplayer.fragment;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -11,14 +15,18 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.example.musicplayer.MainActivity;
 import com.example.musicplayer.R;
 import com.example.musicplayer.adapter.SongListAdapter;
+import com.example.musicplayer.data.MusicPlayStatus;
 import com.example.musicplayer.databinding.FragmentRecyclerListBinding;
 import com.example.musicplayer.entity.Music;
 import com.example.musicplayer.entity.ResultBean;
+import com.example.musicplayer.service.PlayService;
 import com.example.musicplayer.util.Constants;
 import com.example.musicplayer.util.NetworkRequestUtils;
 
@@ -30,6 +38,7 @@ public class RecommendListFragment extends Fragment implements SwipeRefreshLayou
     private FragmentRecyclerListBinding fragmentRecyclerListBinding;
     private final List<Music> musicList=new ArrayList<>();
     private SongListAdapter songListAdapter;
+    private RecommendChangedBroadcastReceiver recommendChangedBroadcastReceiver=new RecommendChangedBroadcastReceiver();
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,6 +51,13 @@ public class RecommendListFragment extends Fragment implements SwipeRefreshLayou
             loadData();
         }
         songListAdapter=new SongListAdapter(getActivity(),musicList);
+        IntentFilter intentFilter = new IntentFilter(Constants.ACTION_RECOMMEND_CHANGED);
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(recommendChangedBroadcastReceiver,intentFilter);
+    }
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(recommendChangedBroadcastReceiver);
     }
     @Nullable
     @Override
@@ -106,4 +122,14 @@ public class RecommendListFragment extends Fragment implements SwipeRefreshLayou
             recommendListFragment.onUpdateMusicList(resultBean);
         }
     }
+    private class RecommendChangedBroadcastReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (isAdded()){
+                loadData();
+            }
+        }
+    }
+
 }

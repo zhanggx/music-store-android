@@ -1,5 +1,9 @@
 package com.example.musicplayer.fragment;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -11,6 +15,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -32,6 +37,7 @@ public class AlbumListFragment extends Fragment implements SwipeRefreshLayout.On
     private FragmentRecyclerListBinding fragmentRecyclerListBinding;
     private final List<Album> albumList=new ArrayList<>();
     private AlbumListAdapter albumListAdapter;
+    private AlbumChangedBroadcastReceiver albumChangedBroadcastReceiver=new AlbumChangedBroadcastReceiver();
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,6 +50,13 @@ public class AlbumListFragment extends Fragment implements SwipeRefreshLayout.On
             loadData();
         }
         albumListAdapter=new AlbumListAdapter(getActivity(),albumList);
+        IntentFilter intentFilter = new IntentFilter(Constants.ACTION_ALBUM_CHANGED);
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(albumChangedBroadcastReceiver,intentFilter);
+    }
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(albumChangedBroadcastReceiver);
     }
 
     @Nullable
@@ -108,6 +121,15 @@ public class AlbumListFragment extends Fragment implements SwipeRefreshLayout.On
                 return;
             }
             albumListFragment.onUpdateMusicList(resultBean);
+        }
+    }
+    private class AlbumChangedBroadcastReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (isAdded()){
+                loadData();
+            }
         }
     }
 }

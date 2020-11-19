@@ -1,5 +1,7 @@
 package com.example.musicplayer.activity;
 
+import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -10,20 +12,25 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.musicplayer.R;
 import com.example.musicplayer.adapter.SingerListAdapter;
+import com.example.musicplayer.entity.Music;
+import com.example.musicplayer.entity.ResultBeanBase;
 import com.example.musicplayer.entity.Singer;
 import com.example.musicplayer.entity.ResultBean;
 import com.example.musicplayer.util.Constants;
 import com.example.musicplayer.util.NetworkRequestUtils;
 
+import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -89,6 +96,27 @@ public class SingerManageActivity extends AppCompatActivity implements SwipeRefr
         return true;
     }
     @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode,resultCode,data);
+
+        if (resultCode== Activity.RESULT_OK) {
+            if (requestCode==REQUEST_CODE_EDIT){
+                Singer singer=data.getParcelableExtra(Constants.DATA);
+                if (singer!=null){
+                    for(Singer s:singerList){
+                        if (singer.getId()==s.getId()){
+                            s.copyFrom(singer);
+                            singerListAdapter.notifyDataSetChanged();
+                            break;
+                        }
+                    }
+                }
+            }else{
+                loadData();
+            }
+        }
+    }
+    @Override
     public void onRefresh() {
         loadData();
     }
@@ -120,12 +148,7 @@ public class SingerManageActivity extends AppCompatActivity implements SwipeRefr
             .setIcon(R.mipmap.ic_launcher)
             .setTitle(R.string.remind)
             .setMessage(R.string.confirm_remove_singer)
-            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener(){
-                @Override
-                public void onClick(DialogInterface dialog, int which){
-                    //Toast.makeText(MainActivity.this, "positive: " + which, Toast.LENGTH_SHORT).show();
-                }
-            })
+            .setPositiveButton(R.string.ok, (dialog, which) -> removeSinger(singer))
             .setNegativeButton(R.string.cancel, null);
         builder.show();
     }
@@ -135,6 +158,21 @@ public class SingerManageActivity extends AppCompatActivity implements SwipeRefr
         Intent intent=new Intent(this, SingerEditActivity.class);
         intent.putExtra(Constants.DATA,singer);
         this.startActivityForResult(intent,REQUEST_CODE_EDIT);
+    }
+    private void removeSinger(Singer singer){
+        new RemoveAsyncTask(this,singer).execute();
+    }
+    private void onRemoveSinger(ResultBeanBase resultBean,Singer singer){
+        if (resultBean==null){
+            Toast.makeText(this, R.string.network_error_msg,Toast.LENGTH_SHORT).show();
+        }else if (resultBean.isSuccess()){
+            singerList.remove(singer);
+            singerListAdapter.notifyDataSetChanged();
+            Intent intent = new Intent(Constants.ACTION_SINGER_CHANGED);
+            LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+        }else{
+            Toast.makeText(this, resultBean.getText(),Toast.LENGTH_SHORT).show();
+        }
     }
 
     private static class SingerAsyncTask extends AsyncTask<Void,Void, ResultBean<List<Singer>>> {
@@ -159,6 +197,47 @@ public class SingerManageActivity extends AppCompatActivity implements SwipeRefr
                 return;
             }
             activity.onUpdateSingerList(resultBean);
+        }
+    }
+    private static class RemoveAsyncTask extends AsyncTask<Void,Void, ResultBeanBase> {
+        private final WeakReference<SingerManageActivity> activityWeakReference;
+        private Singer singer;
+        private ProgressDialog progressDialog;
+        public RemoveAsyncTask(SingerManageActivity activity, Singer singer){
+            activityWeakReference=new WeakReference<>(activity);
+            this.singer=singer;
+            try{
+                progressDialog=ProgressDialog.show(activity,"歌手管理","正在删除，请稍候...");
+            }catch(Throwable tr){
+                tr.printStackTrace();
+            }
+        }
+        @Override
+        protected ResultBeanBase doInBackground(Void... voids) {
+            SingerManageActivity activity =activityWeakReference.get();
+            if (activity ==null){
+                return null;
+            }
+            ResultBeanBase resultBean=NetworkRequestUtils.removeSinger(singer);
+            if (resultBean!=null&&resultBean.isSuccess()){
+
+            }
+            return resultBean;
+        }
+
+        @Override
+        protected void onPostExecute(ResultBeanBase resultBean) {
+            super.onPostExecute(resultBean);
+            try {
+                progressDialog.dismiss();
+            }catch(Throwable tr){
+                tr.printStackTrace();
+            }
+            SingerManageActivity activity =activityWeakReference.get();
+            if (activity ==null){
+                return;
+            }
+            activity.onRemoveSinger(resultBean,singer);
         }
     }
 }

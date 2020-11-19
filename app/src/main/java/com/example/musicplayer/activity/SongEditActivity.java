@@ -1,53 +1,54 @@
 package com.example.musicplayer.activity;
 
 import android.app.Activity;
-import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
+import android.content.ContentUris;
 import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.provider.DocumentsContract;
+import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.DatePicker;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.bumptech.glide.Glide;
 import com.example.musicplayer.R;
 import com.example.musicplayer.adapter.AlbumArrayAdapter;
-import com.example.musicplayer.adapter.ItemObjectArrayAdapter;
 import com.example.musicplayer.databinding.ActivitySongEditBinding;
 import com.example.musicplayer.entity.Album;
-import com.example.musicplayer.entity.ItemObject;
 import com.example.musicplayer.entity.Music;
-import com.example.musicplayer.entity.MusicTheme;
 import com.example.musicplayer.entity.ResultBean;
 import com.example.musicplayer.entity.ResultBeanBase;
-import com.example.musicplayer.entity.Singer;
 import com.example.musicplayer.util.Constants;
 import com.example.musicplayer.util.ContextUtils;
 import com.example.musicplayer.util.NetworkRequestUtils;
 
+import java.io.File;
 import java.lang.ref.WeakReference;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SongEditActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
+public class SongEditActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener, View.OnClickListener {
+    private static final int REQUEST_CODE_PICK=10001;
     private ActivitySongEditBinding songEditBinding;
     private Music music;
 
     private int albumId;
     private final List<Album> albumList=new ArrayList<>();
     private AlbumArrayAdapter albumArrayAdapter;
+    private String mMusicFilePath;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,12 +61,20 @@ public class SongEditActivity extends AppCompatActivity implements AdapterView.O
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);//添加默认的返回图标
         getSupportActionBar().setHomeButtonEnabled(true); //设置返回键可用
         if (music!=null){
-            songEditBinding.musicFileLayout.setVisibility(View.GONE);
-            songEditBinding.musicFileView.setVisibility(View.GONE);
             if (savedInstanceState==null) {
                 songEditBinding.nameText.setText(music.getName());
                 songEditBinding.lengthText.setText(String.valueOf(music.getTimeLength()));
                 songEditBinding.descText.setText(music.getDescription());
+                String fileName=music.getFilePath();
+                if (fileName!=null) {
+                    int index = music.getFilePath().lastIndexOf("/");
+                    if (index > 0) {
+                        fileName = music.getFilePath().substring(index);
+                    }
+                    songEditBinding.fileText.setText(fileName);
+                }
+            }else{
+                mMusicFilePath =savedInstanceState.getString(Constants.STATE_FILE);
             }
         }
         if (savedInstanceState!=null){
@@ -83,6 +92,11 @@ public class SongEditActivity extends AppCompatActivity implements AdapterView.O
         albumArrayAdapter =new AlbumArrayAdapter(this,albumList);
         songEditBinding.albumSpinner.setAdapter(albumArrayAdapter);
         songEditBinding.albumSpinner.setOnItemSelectedListener(this);
+        songEditBinding.fileLayout.setOnClickListener(this);
+        if (mMusicFilePath!=null) {
+            File file=new File(mMusicFilePath);
+            songEditBinding.fileText.setText(file.getName());
+        }
         if (albumId>0&&!albumList.isEmpty()){
             int position=getPositionInList(albumList,albumId);
             if (position>=0) {
@@ -95,6 +109,9 @@ public class SongEditActivity extends AppCompatActivity implements AdapterView.O
         super.onSaveInstanceState(outState);
         if (!albumList.isEmpty()){
             outState.putParcelableArrayList(Constants.LIST_DATA, (ArrayList<? extends Parcelable>) albumList);
+        }
+        if(mMusicFilePath !=null){
+            outState.putString(Constants.STATE_FILE, mMusicFilePath);
         }
     }
     @Override
@@ -114,6 +131,15 @@ public class SongEditActivity extends AppCompatActivity implements AdapterView.O
         getMenuInflater().inflate(R.menu.menu_save,menu);
         return true;
     }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode,resultCode,data);
+        if (resultCode== Activity.RESULT_OK&&requestCode==REQUEST_CODE_PICK) {
+            Uri uri = data.getData();
+            handleMusicFile(uri);
+        }
+    }
+
     private void saveData(){
         String name=songEditBinding.nameText.getText().toString().trim();
         if (TextUtils.isEmpty(name)){
@@ -145,7 +171,11 @@ public class SongEditActivity extends AppCompatActivity implements AdapterView.O
         music.setAlbumId(albumId);
         music.setTimeLength(Integer.parseInt(lenStr));
         music.setDescription(description);
-        new SaveAsyncTask(this,music).execute();
+        File file=null;
+        if (!TextUtils.isEmpty(mMusicFilePath)){
+            file=new File(mMusicFilePath);
+        }
+        new SaveAsyncTask(this,music,file).execute();
     }
 
 
@@ -199,6 +229,17 @@ public class SongEditActivity extends AppCompatActivity implements AdapterView.O
         }
     }
 
+    @Override
+    public void onClick(View v) {
+        int viewId=v.getId();
+        if (viewId==R.id.file_layout) {
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("audio/*");
+            this.startActivityForResult(intent, REQUEST_CODE_PICK);
+        }
+    }
+
     private static class LoadDataAsyncTask extends AsyncTask<Void,Void,List<Album>> {
         private final WeakReference<SongEditActivity> activityWeakReference;
         public LoadDataAsyncTask(SongEditActivity activity){
@@ -231,11 +272,13 @@ public class SongEditActivity extends AppCompatActivity implements AdapterView.O
 
     private static class SaveAsyncTask extends AsyncTask<Void,Void, ResultBeanBase> {
         private final WeakReference<SongEditActivity> activityWeakReference;
-        private final Music music;
+        private Music music;
         private ProgressDialog progressDialog;
-        public SaveAsyncTask(SongEditActivity activity,Music music){
+        private final File file;
+        public SaveAsyncTask(SongEditActivity activity,Music music,File file){
             activityWeakReference=new WeakReference<>(activity);
             this.music=music;
+            this.file=file;
             try{
                 progressDialog=ProgressDialog.show(activity,"歌曲管理","正在保存，请稍候...");
             }catch(Throwable tr){
@@ -248,10 +291,23 @@ public class SongEditActivity extends AppCompatActivity implements AdapterView.O
             if (activity ==null){
                 return null;
             }
-            if (music.getId()>0) {
-                return NetworkRequestUtils.updateMusic(music);
+            if (file!=null) {
+                ResultBean<String> resultBean=NetworkRequestUtils.uploadMusicFile(file);
+                if (resultBean!=null&&resultBean.isSuccess()){
+                    music.setFilePath(resultBean.getData());
+                    music.setFileSize((int)file.length());
+                }
             }
-            return null;
+            ResultBeanBase resultBean=NetworkRequestUtils.saveMusic(music);
+            if (resultBean!=null&&resultBean.isSuccess()){
+                if (music.getId()>0) {
+                    ResultBean<Music> musicResultBean=NetworkRequestUtils.getMusicById(music.getId());
+                    if (musicResultBean!=null&&musicResultBean.isSuccess()){
+                        this.music=musicResultBean.getData();
+                    }
+                }
+            }
+            return resultBean;
         }
 
         @Override
@@ -280,5 +336,44 @@ public class SongEditActivity extends AppCompatActivity implements AdapterView.O
             }
         }
         return 0;
+    }
+    private void handleMusicFile(Uri uri) {
+        String imagePath = null;
+        if (DocumentsContract.isDocumentUri(this, uri)) {
+            // 如果是document类型的Uri，则通过document id处理
+            String docId = DocumentsContract.getDocumentId(uri);
+            if ("com.android.providers.media.documents".equals(uri.getAuthority())) {
+                String id = docId.split(":")[1];
+                // 解析出数字格式的id
+                String selection = MediaStore.Audio.Media._ID + "=" + id;
+                imagePath = getMusicFilePath(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, selection);
+            } else if ("com.android.providers.downloads.documents".equals(uri.getAuthority())) {
+                Uri contentUri = ContentUris.withAppendedId(Uri.parse("content://downloads/public_downloads"), Long.valueOf(docId));
+                imagePath = getMusicFilePath(contentUri, null);
+            }
+        } else if ("content".equalsIgnoreCase(uri.getScheme())) {
+            // 如果是content类型的Uri，则使用普通方式处理
+            imagePath = getMusicFilePath(uri, null);
+        } else if ("file".equalsIgnoreCase(uri.getScheme())) {
+            // 如果是file类型的Uri，直接获取图片路径即可
+            imagePath = uri.getPath();
+        }
+        // 根据图片路径显示图片
+        File file=new File(imagePath);
+        mMusicFilePath =imagePath;
+        songEditBinding.fileText.setText(file.getName());
+        //displayImage(imagePath);
+    }
+    private String getMusicFilePath(Uri uri, String selection) {
+        String path = null;
+        // 通过Uri和selection来获取真实的图片路径
+        Cursor cursor = this.getContentResolver().query(uri, null, selection, null, null);
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                path = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
+            }
+            cursor.close();
+        }
+        return path;
     }
 }

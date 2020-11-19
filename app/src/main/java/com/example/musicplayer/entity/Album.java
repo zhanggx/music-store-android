@@ -26,6 +26,10 @@ public class Album implements Parcelable {
 
     }
 
+    public Album(Album album){
+        id = album.id;
+        copyFrom(album);
+    }
     protected Album(Parcel in) {
         id = in.readInt();
         name = in.readString();
@@ -168,5 +172,19 @@ public class Album implements Parcelable {
 
     public void setPicturePath(String picturePath) {
         this.picturePath = picturePath;
+    }
+
+    public void copyFrom(Album album) {
+        name = album.name;
+        picturePath = album.picturePath;
+        musicCount = album.musicCount;
+        description = album.description;
+        singerId = album.singerId;
+        singerName = album.singerName;
+        themeId = album.themeId;
+        themeName = album.themeName;
+        pictureUrl = album.pictureUrl;
+        publishTime = album.publishTime;
+        timeStamp = album.timeStamp;
     }
 }

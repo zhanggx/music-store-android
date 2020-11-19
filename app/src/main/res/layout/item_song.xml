@@ -60,11 +60,12 @@
             android:layout_height="wrap_content"
             android:src="@drawable/icon_main_play"/>
         <ImageView
-            android:id="@+id/del_button"
+            android:id="@+id/menu_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="5dp"
-            android:src="@drawable/del"/>
+            android:visibility="gone"
+            android:src="@drawable/host_menu"/>
 
     </LinearLayout>
     <View

@@ -23,7 +23,9 @@
     <string name="add_singer">添加歌手</string>
     <string name="edit_singer">编辑歌手</string>
     <string name="confirm_remove_song">是否确定删除歌曲？</string>
+    <string name="confirm_cancel_recommend">是否确定取消推荐歌曲？</string>
     <string name="add_song">添加歌曲</string>
     <string name="edit_song">编辑歌曲</string>
 
+    <string name="confirm_remove_recommend">是否确定移除推荐歌曲？</string>
 </resources>

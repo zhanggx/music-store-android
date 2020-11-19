@@ -2,22 +2,24 @@ package com.example.musicplayer.activity;
 
 import android.app.Activity;
 import android.app.DatePickerDialog;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.provider.SyncStateContract;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.DatePicker;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.bumptech.glide.Glide;
 import com.example.musicplayer.R;
@@ -27,10 +29,13 @@ import com.example.musicplayer.entity.Album;
 import com.example.musicplayer.entity.ItemObject;
 import com.example.musicplayer.entity.MusicTheme;
 import com.example.musicplayer.entity.ResultBean;
+import com.example.musicplayer.entity.ResultBeanBase;
 import com.example.musicplayer.entity.Singer;
 import com.example.musicplayer.util.Constants;
+import com.example.musicplayer.util.ContextUtils;
 import com.example.musicplayer.util.NetworkRequestUtils;
 
+import java.io.File;
 import java.lang.ref.WeakReference;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -66,9 +71,11 @@ public class AlbumEditActivity extends AppCompatActivity implements View.OnClick
             Glide.with(this).load(album.getPictureUrl()).into(albumEditBinding.image);
         }
         if (savedInstanceState!=null){
-            mImagePath=savedInstanceState.getString(Constants.STATE_IMAGE);
+            mImagePath=savedInstanceState.getString(Constants.STATE_FILE);
             long date=savedInstanceState.getLong(Constants.STATE,0L);
-            mMusicDate =LocalDate.ofEpochDay(date);
+            if (date>0L) {
+                mMusicDate = LocalDate.ofEpochDay(date);
+            }
             if (!TextUtils.isEmpty(mImagePath)){
                 Glide.with(this).load(mImagePath).into(albumEditBinding.image);
             }
@@ -85,15 +92,19 @@ public class AlbumEditActivity extends AppCompatActivity implements View.OnClick
         }else{
             if (album!=null) {
                 musicThemeId = album.getThemeId();
-            }
-            if (album!=null) {
+                if (!TextUtils.isEmpty(album.getPublishTime())) {
+                    mMusicDate = LocalDate.parse(album.getPublishTime());
+                }
                 singerId = album.getSingerId();
+            }else{
+                mMusicDate =LocalDate.now();
             }
-            mMusicDate =LocalDate.now();
             loadData();
         }
         picturePicker=new PicturePicker(this,this);
-        albumEditBinding.publishTimeText.setText(mMusicDate.format(fmt));
+        if (mMusicDate!=null) {
+            albumEditBinding.publishTimeText.setText(mMusicDate.format(fmt));
+        }
         albumEditBinding.publishTimeLayout.setOnClickListener(this);
         albumEditBinding.selectPicButton.setOnClickListener(this);
         musicThemeArrayAdapter=new ItemObjectArrayAdapter(this,musicThemeList);
@@ -118,9 +129,11 @@ public class AlbumEditActivity extends AppCompatActivity implements View.OnClick
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putLong(Constants.STATE, mMusicDate.toEpochDay());
+        if (mMusicDate!=null) {
+            outState.putLong(Constants.STATE, mMusicDate.toEpochDay());
+        }
         if(mImagePath!=null){
-            outState.putString(Constants.STATE_IMAGE, mImagePath);
+            outState.putString(Constants.STATE_FILE, mImagePath);
         }
         if (!musicThemeList.isEmpty()){
             outState.putParcelableArrayList(Constants.LIST_DATA, (ArrayList<? extends Parcelable>) musicThemeList);
@@ -160,22 +173,71 @@ public class AlbumEditActivity extends AppCompatActivity implements View.OnClick
     }
 
     private void saveData(){
-        new SaveAsyncTask(this,album).execute();
+        String name=albumEditBinding.nameText.getText().toString().trim();
+        if (TextUtils.isEmpty(name)){
+            Toast.makeText(this,"请输入名称",Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String countStr=albumEditBinding.countText.getText().toString().trim();
+        if (TextUtils.isEmpty(countStr)){
+            Toast.makeText(this,"请输入歌曲数量",Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if(!TextUtils.isDigitsOnly(countStr)){
+            Toast.makeText(this,"请输入正确的歌曲数量",Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if(singerId<=0){
+            Toast.makeText(this,"请选择歌手",Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if(musicThemeId<=0){
+            Toast.makeText(this,"请选择专辑类型",Toast.LENGTH_SHORT).show();
+            return;
+        }
+        ContextUtils.hideSoftInput(this,albumEditBinding.nameText);
+        String description=albumEditBinding.descText.getText().toString().trim();
+        Album album;
+        if (this.album==null) {
+            album = new Album();
+        }else {
+            album=new Album(this.album);
+        }
+        album.setSingerId(singerId);
+        album.setThemeId(musicThemeId);
+        album.setName(name);
+        album.setMusicCount(Integer.parseInt(countStr));
+        if (mMusicDate!=null) {
+            album.setPublishTime(mMusicDate.format(fmt));
+        }else{
+            album.setPublishTime(null);
+        }
+        album.setDescription(description);
+        File file=null;
+        if (!TextUtils.isEmpty(mImagePath)){
+            file=new File(mImagePath);
+        }
+        new SaveAsyncTask(this,album,file).execute();
     }
 
     @Override
     public void onClick(View v) {
         int viewId=v.getId();
         if (viewId==R.id.publish_time_layout){
+            LocalDate localDate=mMusicDate;
+            if (localDate==null){
+                localDate=LocalDate.now();
+            }
+            int month=localDate.getMonthValue();
             new DatePickerDialog(this, 0, new DatePickerDialog.OnDateSetListener() {
                 // 绑定监听器(How the parent is notified that the date is set.)
                 @Override
                 public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
                     // 此处得到选择的时间，可以进行你想要的操作
-                    mMusicDate=LocalDate.of(year,monthOfYear,dayOfMonth);
+                    mMusicDate=LocalDate.of(year,monthOfYear+1,dayOfMonth);
                     albumEditBinding.publishTimeText.setText(mMusicDate.format(fmt));
                 }
-            },mMusicDate.getYear(),mMusicDate.getMonthValue(),mMusicDate.getDayOfMonth()).show();
+            },localDate.getYear(),month-1,localDate.getDayOfMonth()).show();
             return;
         }
         if (viewId==R.id.select_pic_button){
@@ -274,31 +336,77 @@ public class AlbumEditActivity extends AppCompatActivity implements View.OnClick
             activity.onUpdateList(musicThemeList,singerList);
         }
     }
+    private void onSaveAlbum(ResultBeanBase resultBean,Album album) {
+        if (resultBean==null){
+            Toast.makeText(this, R.string.network_error_msg,Toast.LENGTH_SHORT).show();
+        }else if (resultBean.isSuccess()){
+            if (this.album!=null) {
+                Intent intent=new Intent();
+                intent.putExtra(Constants.DATA,album);
+                this.setResult(Activity.RESULT_OK,intent);
+            }else{
+                this.setResult(Activity.RESULT_OK);
+            }
+            Intent intent = new Intent(Constants.ACTION_ALBUM_CHANGED);
+            LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+            this.finish();
+        }else{
+            Toast.makeText(this, resultBean.getText(),Toast.LENGTH_SHORT).show();
+        }
+    }
 
-    private static class SaveAsyncTask extends AsyncTask<Void,Void, ResultBean> {
+    private static class SaveAsyncTask extends AsyncTask<Void,Void, ResultBeanBase> {
         private final WeakReference<AlbumEditActivity> activityWeakReference;
-        private final Album album;
-        public SaveAsyncTask(AlbumEditActivity activity,Album album){
+        private Album album;
+        private final File file;
+        private ProgressDialog progressDialog;
+        public SaveAsyncTask(AlbumEditActivity activity, Album album, File file){
             activityWeakReference=new WeakReference<>(activity);
             this.album=album;
+            this.file=file;
+            try{
+                progressDialog= ProgressDialog.show(activity,"专辑管理","正在保存，请稍候...");
+            }catch(Throwable tr){
+                tr.printStackTrace();
+            }
         }
         @Override
-        protected ResultBean doInBackground(Void... voids) {
+        protected ResultBeanBase doInBackground(Void... voids) {
             AlbumEditActivity activity =activityWeakReference.get();
             if (activity ==null){
                 return null;
             }
-            //return NetworkRequestUtils.saveAlbum(album);
-            return null;
+            if (file!=null) {
+                ResultBean<String> resultBean=NetworkRequestUtils.uploadImageFile(file);
+                if (resultBean!=null&&resultBean.isSuccess()){
+                    album.setPicturePath(resultBean.getData());
+                }
+            }
+            ResultBeanBase resultBean=NetworkRequestUtils.saveAlbum(album);
+            if (resultBean!=null&&resultBean.isSuccess()){
+                if (album.getId()>0) {
+                    ResultBean<Album> albumResultBean = NetworkRequestUtils.getAlbumById(album.getId());
+                    if (albumResultBean != null && albumResultBean.isSuccess()) {
+                        this.album = albumResultBean.getData();
+                    }
+                }
+            }
+            return resultBean;
         }
 
         @Override
-        protected void onPostExecute(ResultBean resultBean) {
+        protected void onPostExecute(ResultBeanBase resultBean) {
             super.onPostExecute(resultBean);
+            try {
+                progressDialog.dismiss();
+            }catch(Throwable tr){
+                tr.printStackTrace();
+            }
             AlbumEditActivity activity =activityWeakReference.get();
             if (activity ==null){
                 return;
             }
+            activity.onSaveAlbum(resultBean,album);
         }
     }
 

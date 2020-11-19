@@ -25,6 +25,8 @@ public class Music implements Parcelable {
     private String albumPictureUrl;
     private String timeStamp;
 
+    private int recommendIndex;
+
     public Music(){
 
     }
@@ -49,6 +51,7 @@ public class Music implements Parcelable {
         description = in.readString();
         albumPictureUrl = in.readString();
         timeStamp = in.readString();
+        recommendIndex = in.readInt();
     }
 
     @Override
@@ -68,6 +71,7 @@ public class Music implements Parcelable {
         dest.writeString(description);
         dest.writeString(albumPictureUrl);
         dest.writeString(timeStamp);
+        dest.writeInt(recommendIndex);
     }
 
     @Override
@@ -222,5 +226,14 @@ public class Music implements Parcelable {
         description = music.description;
         albumPictureUrl = music.albumPictureUrl;
         timeStamp = music.timeStamp;
+        recommendIndex = music.recommendIndex;
+    }
+
+    public int getRecommendIndex() {
+        return recommendIndex;
+    }
+
+    public void setRecommendIndex(int recommendIndex) {
+        this.recommendIndex = recommendIndex;
     }
 }

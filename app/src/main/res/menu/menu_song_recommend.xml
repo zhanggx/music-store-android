@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/cancel"
+        android:icon="@drawable/del"
+        android:title="取消推荐"/>
+
+    <item
+        android:id="@+id/move_prev"
+        android:title="上移"/>
+    <item
+        android:id="@+id/move_next"
+        android:title="下移"/>
+</menu>

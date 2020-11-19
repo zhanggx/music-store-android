@@ -1,5 +1,7 @@
 package com.example.musicplayer.activity;
 
+import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -10,9 +12,11 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -21,6 +25,8 @@ import com.example.musicplayer.R;
 import com.example.musicplayer.adapter.AlbumListAdapter;
 import com.example.musicplayer.entity.Album;
 import com.example.musicplayer.entity.ResultBean;
+import com.example.musicplayer.entity.ResultBeanBase;
+import com.example.musicplayer.entity.Singer;
 import com.example.musicplayer.util.Constants;
 import com.example.musicplayer.util.NetworkRequestUtils;
 
@@ -89,6 +95,27 @@ public class AlbumManageActivity extends AppCompatActivity implements SwipeRefre
         return true;
     }
     @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode,resultCode,data);
+
+        if (resultCode== Activity.RESULT_OK) {
+            if (requestCode==REQUEST_CODE_EDIT){
+                Album album=data.getParcelableExtra(Constants.DATA);
+                if (album!=null){
+                    for(Album a:albumList){
+                        if (album.getId()==a.getId()){
+                            a.copyFrom(album);
+                            albumListAdapter.notifyDataSetChanged();
+                            break;
+                        }
+                    }
+                }
+            }else{
+                loadData();
+            }
+        }
+    }
+    @Override
     public void onRefresh() {
         loadData();
     }
@@ -120,12 +147,7 @@ public class AlbumManageActivity extends AppCompatActivity implements SwipeRefre
             .setIcon(R.mipmap.ic_launcher)
             .setTitle(R.string.remind)
             .setMessage(R.string.confirm_remove_album)
-            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener(){
-                @Override
-                public void onClick(DialogInterface dialog, int which){
-                    //Toast.makeText(MainActivity.this, "positive: " + which, Toast.LENGTH_SHORT).show();
-                }
-            })
+            .setPositiveButton(R.string.ok, (dialog, which) -> removeAlbum(album))
             .setNegativeButton(R.string.cancel, null);
         builder.show();
     }
@@ -159,6 +181,62 @@ public class AlbumManageActivity extends AppCompatActivity implements SwipeRefre
                 return;
             }
             activity.onUpdateAlbumList(resultBean);
+        }
+    }
+    private void removeAlbum(Album album){
+        new RemoveAsyncTask(this,album).execute();
+    }
+    private void onRemoveAlbum(ResultBeanBase resultBean,Album album){
+        if (resultBean==null){
+            Toast.makeText(this, R.string.network_error_msg,Toast.LENGTH_SHORT).show();
+        }else if (resultBean.isSuccess()){
+            albumList.remove(album);
+            albumListAdapter.notifyDataSetChanged();
+            Intent intent = new Intent(Constants.ACTION_ALBUM_CHANGED);
+            LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+        }else{
+            Toast.makeText(this, resultBean.getText(),Toast.LENGTH_SHORT).show();
+        }
+    }
+    private static class RemoveAsyncTask extends AsyncTask<Void,Void, ResultBeanBase> {
+        private final WeakReference<AlbumManageActivity> activityWeakReference;
+        private Album album;
+        private ProgressDialog progressDialog;
+        public RemoveAsyncTask(AlbumManageActivity activity, Album album){
+            activityWeakReference=new WeakReference<>(activity);
+            this.album=album;
+            try{
+                progressDialog=ProgressDialog.show(activity,"歌手管理","正在删除，请稍候...");
+            }catch(Throwable tr){
+                tr.printStackTrace();
+            }
+        }
+        @Override
+        protected ResultBeanBase doInBackground(Void... voids) {
+            AlbumManageActivity activity =activityWeakReference.get();
+            if (activity ==null){
+                return null;
+            }
+            ResultBeanBase resultBean=NetworkRequestUtils.removeAlbum(album);
+            if (resultBean!=null&&resultBean.isSuccess()){
+
+            }
+            return resultBean;
+        }
+
+        @Override
+        protected void onPostExecute(ResultBeanBase resultBean) {
+            super.onPostExecute(resultBean);
+            try {
+                progressDialog.dismiss();
+            }catch(Throwable tr){
+                tr.printStackTrace();
+            }
+            AlbumManageActivity activity =activityWeakReference.get();
+            if (activity ==null){
+                return;
+            }
+            activity.onRemoveAlbum(resultBean,album);
         }
     }
 }
