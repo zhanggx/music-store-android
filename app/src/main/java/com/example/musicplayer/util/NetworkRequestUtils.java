@@ -11,6 +11,7 @@ import com.example.musicplayer.entity.RequestBean;
 import com.example.musicplayer.entity.ResultBean;
 import com.example.musicplayer.entity.ResultBeanBase;
 import com.example.musicplayer.entity.Singer;
+import com.example.musicplayer.entity.User;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -34,6 +35,7 @@ public class NetworkRequestUtils {
     private static final Gson gson=new Gson();
     //private static final String HOST_BASE_URL="http://192.168.1.67:18086";
     private static final String HOST_BASE_URL="http://dawan.youke.ykhdedu.com/musicstore";
+    private static final String LOGIN_URL=HOST_BASE_URL + "/user/login";
     private static final String RECOMMEND_MUSIC_URL=HOST_BASE_URL + "/recommend/getList";
     private static final String ALBUM_MUSIC_URL=HOST_BASE_URL + "/music/getList?albumId=";
     private static final String MUSIC_LIST_URL=HOST_BASE_URL + "/music/getList";
@@ -55,6 +57,24 @@ public class NetworkRequestUtils {
     private static final String CANCEL_RECOMMEND_URL=HOST_BASE_URL + "/recommend/cancel";
     private static final String ADD_RECOMMEND_URL=HOST_BASE_URL + "/recommend/add";
     private static final String MOVE_RECOMMEND_URL=HOST_BASE_URL + "/recommend/move";
+
+    public static ResultBean<User> login(String account, String password){
+        try {
+            RequestBean requestBean=new RequestBean();
+            requestBean.setAccount(account);
+            requestBean.setPassword(password);
+            String json=gson.toJson(requestBean);
+            String result = postJsonData(LOGIN_URL, json);
+            if (!TextUtils.isEmpty(result)){
+                ResultBean<User> resultBean = gson.fromJson(result, new TypeToken<ResultBean<User>>() {
+                }.getType());
+                return resultBean;
+            }
+        }catch(Throwable tr){
+            tr.printStackTrace();
+        }
+        return null;
+    }
 
     public static ResultBean<List<Music>> getRecommendMusicList(){
         try {
@@ -102,6 +122,22 @@ public class NetworkRequestUtils {
             String result = get(url);
             if (!TextUtils.isEmpty(result)){
                 ResultBean<Music> resultBean = gson.fromJson(result, new TypeToken<ResultBean<Music>>() {
+                }.getType());
+                return resultBean;
+            }
+        }catch(Throwable tr){
+            tr.printStackTrace();
+        }
+        return null;
+    }
+    public static ResultBeanBase login(Music music){
+        try {
+            RequestBean requestBean=new RequestBean();
+            requestBean.setId(music.getId());
+            String json=gson.toJson(requestBean);
+            String result = postJsonData(REMOVE_MUSIC_URL, json);
+            if (!TextUtils.isEmpty(result)){
+                ResultBeanBase resultBean = gson.fromJson(result, new TypeToken<ResultBeanBase>() {
                 }.getType());
                 return resultBean;
             }

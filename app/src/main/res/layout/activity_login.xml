@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="true"
+    android:fitsSystemWindows="false"
+    android:orientation="vertical"
+    android:background="#710AD1"
+    tools:context=".LoginActivity">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:layout_marginTop="120dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:text="@string/app_name" android:textColor="@android:color/white"
+            android:layout_gravity="center"
+            android:textSize="32dp"/>
+    </FrameLayout>
+
+
+    <LinearLayout
+        android:id="@+id/input_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:background="@drawable/shape_input_background"
+        android:layout_marginTop="60dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginLeft="30dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="46dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginRight="12dp"
+            android:layout_marginLeft="12dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingLeft="13dp">
+
+
+            <ImageView
+                android:layout_width="31dp"
+                android:layout_height="31dp"
+                android:layout_marginRight="19dp"
+                android:src="@drawable/ic_role_flag" />
+
+            <EditText
+                android:id="@+id/name_edit"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@null"
+                android:gravity="center_vertical"
+                android:hint="@string/hint_user_name"
+                android:maxLength="26"
+                android:singleLine="true"
+                android:textColor="#292929"
+                android:textColorHint="#89898B"
+                android:textSize="13dp" />
+        </LinearLayout>
+
+        <View
+            android:layout_marginLeft="51dp"
+            android:layout_width="match_parent"
+            android:layout_height="1dp" android:background="#EBEBEB"
+            android:layout_marginTop="5dp"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="46dp"
+            android:layout_marginTop="18dp"
+            android:layout_marginRight="12dp"
+            android:layout_marginLeft="12dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingLeft="13dp">
+
+
+            <ImageView
+                android:layout_width="31dp"
+                android:layout_height="31dp"
+                android:layout_marginRight="19dp"
+                android:src="@drawable/ic_pwd_flag" />
+
+            <EditText
+                android:id="@+id/password_edit"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@null"
+                android:gravity="center_vertical"
+                android:maxLength="26"
+                android:singleLine="true"
+                android:hint="@string/hint_user_password"
+                android:inputType="textPassword"
+                android:textColor="#292929"
+                android:textColorHint="#89898B"
+                android:textSize="13dp" />
+        </LinearLayout>
+
+        <View
+            android:layout_marginLeft="51dp"
+            android:layout_width="match_parent"
+            android:layout_height="1dp" android:background="#EBEBEB"
+            android:layout_marginTop="5dp"/>
+
+
+        <Button
+            android:id="@+id/login_button"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginRight="28dp"
+            android:layout_marginLeft="28dp"
+            android:layout_marginBottom="24dp"
+            android:background="@drawable/bg_btn_login_selector"
+            android:text="登录"
+            android:textColor="@android:color/white"
+            android:textSize="20dp" />
+
+
+    </LinearLayout>
+
+</LinearLayout>

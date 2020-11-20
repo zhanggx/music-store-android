@@ -3,27 +3,32 @@ package com.example.musicplayer;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
+import android.text.TextUtils;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.musicplayer.activity.SingerEditActivity;
-import com.example.musicplayer.entity.Album;
-import com.example.musicplayer.entity.ResultBean;
+import com.example.musicplayer.util.LoginUtils;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.lang.ref.WeakReference;
 
 public class WelcomeActivity extends AppCompatActivity {
+    private LoginUtils loginUtils;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_welcome);
+        loginUtils=new LoginUtils(this);
         new WelcomeAsyncTask(this).execute();
     }
     private void startMainActivity(){
-        Intent intent=new Intent(this,MainActivity.class);
+        String account=loginUtils.getLoginUserAccount();
+        Intent intent;
+        if (TextUtils.isEmpty(account)) {
+            intent = new Intent(this, LoginActivity.class);
+        }else{
+            intent = new Intent(this, MainActivity.class);
+        }
         this.startActivity(intent);
         this.finish();
     }

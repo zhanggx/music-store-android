@@ -88,6 +88,11 @@ public class PlayService extends Service implements MediaPlayer.OnCompletionList
     @Override
     public void onDestroy() {
         super.onDestroy();
+        if (myMediaPlayer!=null){
+            if (myMediaPlayer.isPlaying()) {
+                myMediaPlayer.stop();
+            }
+        }
         playHandler.removeCallbacksAndMessages(null);
     }
 

@@ -6,6 +6,10 @@
     <string name="remind">提示</string>
     <string name="ok">确定</string>
     <string name="cancel">取消</string>
+    <string name="exit_remind">是否继续退出登录？</string>
+
+    <string name="hint_user_name">请输入账号</string>
+    <string name="hint_user_password">请输入密码</string>
 
     <string name="music_count_string">%1$d首歌曲</string>
     <string name="album_count_string">%1$d张专辑</string>

@@ -1,6 +1,7 @@
 package com.example.musicplayer;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
@@ -13,6 +14,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -92,6 +94,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -115,11 +118,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
     @Override
     public void onBackPressed() {
+        this.moveTaskToBack(true);
+        /*
         if (musicPlayStatus.getStatus()!=MusicPlayStatus.STATUS_PLAYING){
             this.moveTaskToBack(true);
         }else {
             super.onBackPressed();
-        }
+        }*/
     }
     //调用菜单
     @Override
@@ -160,6 +165,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             this.startActivity(intent);
             return true;
         }
+        if (item.getItemId() == R.id.exit) {
+            showExitConfirmDialog();
+            return true;
+        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -196,6 +205,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    private void showExitConfirmDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                .setIcon(R.mipmap.ic_launcher)
+                .setTitle(R.string.remind)
+                .setMessage(R.string.exit_remind)
+                .setPositiveButton(R.string.ok, (dialog, which) ->{
+                    PlayService.stopService(MainActivity.this);
+                    Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                    startActivity(intent);
+                    finish();
+                })
+                .setNegativeButton(R.string.cancel, null);
+        builder.show();
+    }
     private class PlayBroadcastReceiver extends BroadcastReceiver {
 
         @Override

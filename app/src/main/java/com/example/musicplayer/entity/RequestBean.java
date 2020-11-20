@@ -7,6 +7,8 @@ public class RequestBean {
     private Integer sourceId;
 
     private Integer destId;
+    private String account;
+    private String password;
 
     public Integer getId() {
         return id;
@@ -30,5 +32,22 @@ public class RequestBean {
 
     public void setDestId(Integer destId) {
         this.destId = destId;
+    }
+
+
+    public String getAccount() {
+        return account;
+    }
+
+    public void setAccount(String account) {
+        this.account = account;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }

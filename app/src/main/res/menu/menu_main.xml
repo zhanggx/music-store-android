@@ -27,4 +27,9 @@
         android:title="歌曲推荐"
         app:showAsAction="never">
     </item>
+    <item
+        android:id="@+id/exit"
+        android:title="退出登录"
+        app:showAsAction="never">
+    </item>
 </menu>
