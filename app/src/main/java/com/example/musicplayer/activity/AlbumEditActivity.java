@@ -107,6 +107,7 @@ public class AlbumEditActivity extends AppCompatActivity implements View.OnClick
         }
         albumEditBinding.publishTimeLayout.setOnClickListener(this);
         albumEditBinding.selectPicButton.setOnClickListener(this);
+        albumEditBinding.image.setOnClickListener(this);
         musicThemeArrayAdapter=new ItemObjectArrayAdapter(this,musicThemeList);
         singerArrayAdapter=new ItemObjectArrayAdapter(this,singerList);
         albumEditBinding.themeSpinner.setAdapter(musicThemeArrayAdapter);
@@ -230,14 +231,22 @@ public class AlbumEditActivity extends AppCompatActivity implements View.OnClick
             }
             int month=localDate.getMonthValue();
             new DatePickerDialog(this, 0, new DatePickerDialog.OnDateSetListener() {
-                // 绑定监听器(How the parent is notified that the date is set.)
                 @Override
                 public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                    // 此处得到选择的时间，可以进行你想要的操作
                     mMusicDate=LocalDate.of(year,monthOfYear+1,dayOfMonth);
                     albumEditBinding.publishTimeText.setText(mMusicDate.format(fmt));
                 }
             },localDate.getYear(),month-1,localDate.getDayOfMonth()).show();
+            return;
+        }
+        if (viewId==R.id.image){
+            if (!TextUtils.isEmpty(mImagePath)){
+                PicturePreviewActivity.startActivity(this,mImagePath);
+            }else if (album!=null&&!TextUtils.isEmpty(album.getPictureUrl())){
+                PicturePreviewActivity.startActivity(this,album.getPictureUrl());
+            }else {
+                picturePicker.showPickDialog();
+            }
             return;
         }
         if (viewId==R.id.select_pic_button){

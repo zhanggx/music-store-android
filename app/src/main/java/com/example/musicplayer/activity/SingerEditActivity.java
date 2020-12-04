@@ -81,6 +81,7 @@ public class SingerEditActivity extends AppCompatActivity implements View.OnClic
         }
         singerEditBinding.birthdayLayout.setOnClickListener(this);
         singerEditBinding.selectPicButton.setOnClickListener(this);
+        singerEditBinding.image.setOnClickListener(this);
     }
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
@@ -161,14 +162,22 @@ public class SingerEditActivity extends AppCompatActivity implements View.OnClic
             }
             int month=localDate.getMonthValue();
             new DatePickerDialog(this, 0, new DatePickerDialog.OnDateSetListener() {
-                // 绑定监听器(How the parent is notified that the date is set.)
                 @Override
                 public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                    // 此处得到选择的时间，可以进行你想要的操作
                     mBirthdayDate=LocalDate.of(year,monthOfYear+1,dayOfMonth);
                     singerEditBinding.birthdayText.setText(mBirthdayDate.format(fmt));
                 }
             },localDate.getYear(),month-1,localDate.getDayOfMonth()).show();
+            return;
+        }
+        if (viewId==R.id.image){
+            if (!TextUtils.isEmpty(mImagePath)){
+                PicturePreviewActivity.startActivity(this,mImagePath);
+            }else if (singer!=null&&!TextUtils.isEmpty(singer.getPictureUrl())){
+                PicturePreviewActivity.startActivity(this,singer.getPictureUrl());
+            }else {
+                picturePicker.showPickDialog();
+            }
             return;
         }
         if (viewId==R.id.select_pic_button){
