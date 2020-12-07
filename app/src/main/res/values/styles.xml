@@ -8,10 +8,12 @@
     </style>
 
     <style name="WelcomeTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="android:windowIsTranslucent">false</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowTranslucentNavigation">true</item>
         <item name="android:windowNoTitle">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:background">@android:color/transparent</item>
-        <item name="android:windowDisablePreview">true</item>
     </style>
     <style name="edit_text_style">
         <item name="android:layout_width">80dp</item>
