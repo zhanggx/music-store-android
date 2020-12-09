@@ -29,6 +29,7 @@
             app:tabMode="fixed"
             android:id="@+id/tab_layout"
             android:textAlignment="center"
+            app:tabTextColor="@color/title_tabs"
             android:background="@color/colorPrimary"/>
 
     </com.google.android.material.appbar.AppBarLayout>
